@@ -1,0 +1,10 @@
+<2023/1/1>[项目开始构建]
+    -新的一年,造个语言
+    -开始构建is的基础设施(Array,Stack等)
+    文件更新:
+     <common.h/common.cpp>
+        -加入assert函数(断言函数,用于报错)
+        -加入ceilToPowerOf2函数(给可变数组扩容用的)
+     <array.h>
+        -Array类大致构建完毕(于main.cpp中测试些许功能正常)
+        -一个空的Array至少得占用12byte的空间,在64bit系统中占16byte

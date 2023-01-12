@@ -1,10 +1,6 @@
 #include "common.h"
-#include <cstdio>
-#include <cstdlib>
-#include <cstdarg>
-#include <cstdint>
 
-uint32_t ceilToPowerOf2(uint32_t num) {
+isize ceilToPowerOf2(isize num) {
     num += (num == 0); //修复当num等于0时结果为0的边界情况
     num--;
     num |= num >> 1;
@@ -12,18 +8,30 @@ uint32_t ceilToPowerOf2(uint32_t num) {
     num |= num >> 4;
     num |= num >> 8;
     num |= num >> 16;
+//    num |= num >> 32; //若要将isize改为ui64,则应取消该语句的注释
     num++;
     return num;
 }
 
-void assert(bool logicExpr, const char *msg, ...) {
-    char buffer[512] = {0};
+#ifdef DEBUG_MODE
+#ifndef DEBUG_MODE_USING_MICRO_ASSERT
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
+
+void assert(bool logicexpr, const char *msg, ...) {
+    char buffer[DEBUG_ASSERT_BUFFER_SIZE] = {0};
     va_list args;
     va_start(args, msg); //设置args为msg之后的参数
-    vsnprintf(buffer, 512, msg, args);//将可变参数在msg的fmt文本中展开
+    vsnprintf(buffer, DEBUG_ASSERT_BUFFER_SIZE, msg, args);//将可变参数在msg的fmt文本中展开
     va_end(args);
-    if (!logicExpr) {
-        fprintf(stderr, "%s\n", buffer);
-        exit(EXIT_FAILURE);
+    if (!logicexpr) {
+//        fprintf(stderr, "%s\n", buffer);
+        printf("\033[0m\033[1;31m[Code Error]Assert failed: %s\033[0m\n", buffer);
+        if (DEBUG_ASSERT_CLOSE) { exit(EXIT_FAILURE); }
     }
 }
+
+#endif
+#endif

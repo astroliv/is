@@ -8,17 +8,17 @@
 //可变长数组
 template<class T>
 class Array {
-    uint32_t capacity = 0;
-    uint32_t usedSize = 0;
+    isize capacity = 0;
+    isize usedSize = 0;
     T *data = nullptr;
 public:
     Array();
 
     //以指定容量初始化
-    explicit Array(uint32_t cap);
+    explicit Array(isize cap);
 
     //重置大小,会保留原数据,参数newCap为0则清空
-    void resize(uint32_t newCap);
+    void resize(isize newCap);
 
     //添加成员,不会扩容
     bool add(const T &value);
@@ -30,32 +30,32 @@ public:
     T &pop();
 
     //确保剩余空间足够达到指定大小,未达到则扩容
-    void ensure(uint32_t remain);
+    void ensure(isize remain);
 
     //设置指定idx处的成员内容.需保证idx<usedSize,超出范围则返回false
-    void set(uint32_t idx, const T &value);
+    void set(isize idx, const T &value);
 
     //获取指定位置成员.需保证idx<usedSize,否则报错
-    T &get(uint32_t idx);
+    T &get(isize idx);
 
     //返回数组最大容量
-    uint32_t getCapacity();
+    isize getCapacity();
 
     //返回数组已使用容量
-    uint32_t getUsedSize();
+    isize getUsedSize();
 
     //获取指定位置成员.需保证idx<usedSize,否则报错
-    T &operator[](uint32_t idx);
+    T &operator[](isize idx);
 };
 
 
 template<class T>
-uint32_t Array<T>::getUsedSize() {
+isize Array<T>::getUsedSize() {
     return usedSize;
 }
 
 template<class T>
-uint32_t Array<T>::getCapacity() {
+isize Array<T>::getCapacity() {
     return capacity;
 }
 
@@ -71,24 +71,24 @@ T &Array<T>::pop() {
 }
 
 template<class T>
-T &Array<T>::operator[](uint32_t idx) {
+T &Array<T>::operator[](isize idx) {
     return get(idx);
 }
 
 template<class T>
-T &Array<T>::get(uint32_t idx) {
+T &Array<T>::get(isize idx) {
     assert(idx < usedSize, "Index [%u] out of range.", idx);
     return data[idx];
 }
 
 template<class T>
-void Array<T>::set(uint32_t idx, const T &value) {
+void Array<T>::set(isize idx, const T &value) {
     assert(idx < usedSize, "Index [%u] out of range.", idx);
     data[idx] = value;
 }
 
 template<class T>
-void Array<T>::ensure(uint32_t remain) {
+void Array<T>::ensure(isize remain) {
     if (capacity - usedSize >= remain) { return; }//判断剩余空间是否足够
     resize(ceilToPowerOf2(usedSize + remain));
     //不够就自动补上,顺便对齐二的次幂,可以减少扩容次数
@@ -96,7 +96,7 @@ void Array<T>::ensure(uint32_t remain) {
 
 
 template<class T>
-Array<T>::Array(uint32_t cap) {
+Array<T>::Array(isize cap) {
     resize(cap);
 }
 
@@ -115,7 +115,7 @@ bool Array<T>::add(const T &value) {
 }
 
 template<class T>
-void Array<T>::resize(uint32_t newCap) { //这是variableArray的灵魂
+void Array<T>::resize(isize newCap) { //这是variableArray的灵魂
     capacity = newCap;//先设置数量数据
     if (usedSize > newCap) { usedSize = newCap; }//将usedSize向下合理化
     if (newCap == 0) {
@@ -129,10 +129,12 @@ void Array<T>::resize(uint32_t newCap) { //这是variableArray的灵魂
         return;
     }//如果为空则直接新建即可
     T *newPtr = new T[newCap];//创建新数组
-    for (uint32_t i = 0; i < usedSize; ++i) { newPtr[i] = data[i]; }//复制内容
+    for (isize i = 0; i < usedSize; ++i) { newPtr[i] = data[i]; }//复制内容
     delete data;  //删除旧数组
     data = newPtr;//使用新数组
 }
+
+typedef Array<byte> Instream;
 
 
 #endif //IS_ARRAY_H

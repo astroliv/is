@@ -14,7 +14,7 @@
 #define DEBUG_ASSERT_BUFFER_SIZE 512
 
 //调试断言 断言失败是否直接关闭
-#define DEBUG_ASSERT_CLOSE true
+#define DEBUG_ASSERT_CLOSE false
 
 
 #endif //IS_OPTIONS_H

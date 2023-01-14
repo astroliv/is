@@ -1,4 +1,4 @@
-#include "bytecode.h"
+#include "ibytecode.h"
 
 uint64_t readArg(Instream &in, isize idx) {
     uint64_t result = 0;

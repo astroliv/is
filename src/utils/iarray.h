@@ -1,5 +1,5 @@
-#ifndef IS_ARRAY_H
-#define IS_ARRAY_H
+#ifndef IS_IARRAY_H
+#define IS_IARRAY_H
 
 #include <cstdint>
 #include "common.h"
@@ -12,7 +12,7 @@ class Array {
     isize usedSize = 0;
     T *data = nullptr;
 public:
-    Array();
+    Array() = default;
 
     //以指定容量初始化
     explicit Array(isize cap);
@@ -57,11 +57,6 @@ isize Array<T>::getUsedSize() {
 template<class T>
 isize Array<T>::getCapacity() {
     return capacity;
-}
-
-template<class T>
-Array<T>::Array() {
-    NULL;//为了防止CLion的Warning,写了个废话
 }
 
 template<class T>
@@ -137,4 +132,4 @@ void Array<T>::resize(isize newCap) { //这是variableArray的灵魂
 typedef Array<byte> Instream;
 
 
-#endif //IS_ARRAY_H
+#endif //IS_IARRAY_H

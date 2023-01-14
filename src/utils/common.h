@@ -13,7 +13,6 @@ typedef uint8_t byte;
 //将输入数字向上对齐到2的整次幂
 isize ceilToPowerOf2(isize num);
 
-
 #ifdef DEBUG_MODE
 
 #ifndef DEBUG_MODE_USING_MICRO_ASSERT

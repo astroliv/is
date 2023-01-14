@@ -1,0 +1,32 @@
+//HANDLE_ENUM(name,sName):name为枚举名,sName为名称的字符串形式
+
+HANDLE_ENUM(unk, "unknown")
+
+HANDLE_ENUM(id, "id")
+HANDLE_ENUM(num, "number")
+HANDLE_ENUM(str, "string")
+
+HANDLE_ENUM(add, "add")
+HANDLE_ENUM(sub, "sub")
+HANDLE_ENUM(mul, "mul")
+HANDLE_ENUM(div, "div")
+HANDLE_ENUM(pow, "pow")
+HANDLE_ENUM(mod, "mod")
+
+//分号
+HANDLE_ENUM(end, "end")
+
+//小括号
+HANDLE_ENUM(lpare, "lpare")
+HANDLE_ENUM(rpare, "rpare")
+
+//中括号
+HANDLE_ENUM(lbracket, "lbracket")
+HANDLE_ENUM(rbracket, "rbracket")
+
+//大括号
+HANDLE_ENUM(lbrace, "lbrace")
+HANDLE_ENUM(rbrace, "rbrace")
+
+//终结符
+HANDLE_ENUM(eof, "eof")

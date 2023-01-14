@@ -1,7 +1,7 @@
-#ifndef IS_BYTECODE_H
-#define IS_BYTECODE_H
+#ifndef IS_IBYTECODE_H
+#define IS_IBYTECODE_H
 
-#include "array.h"
+#include "iarray.h"
 
 //变长字节码参数的写入
 void writeArg(Instream &in, uint64_t arg);
@@ -10,4 +10,4 @@ void writeArg(Instream &in, uint64_t arg);
 uint64_t readArg(Instream &in, isize idx);
 
 
-#endif //IS_BYTECODE_H
+#endif //IS_IBYTECODE_H

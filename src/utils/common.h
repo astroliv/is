@@ -8,6 +8,7 @@
 typedef uint32_t isize; //本程序所有的索引所使用的类型,将这个修改到特定类型可以起到32/64位适配的作用
 typedef uint8_t byte;   //字节
 
+
 isize ceilToPowerOf2(isize num);    //将输入数字向上对齐到2的整次幂
 
 #ifdef DEBUG_MODE

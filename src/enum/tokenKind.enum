@@ -1,4 +1,6 @@
-//HANDLE_ENUM(name,sName):name为枚举名,sName为名称的字符串形式
+//HANDLE_ENUM(n,sn)
+//n  为枚举名
+//sn 为名称的字符串形式
 
 HANDLE_ENUM(unk, "unknown")
 

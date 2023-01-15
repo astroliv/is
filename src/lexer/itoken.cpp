@@ -2,8 +2,8 @@
 #include <cstdio>
 
 const char *tokenKindName[] = {
-#define HANDLE_ENUM(name, sName) sName,
-#include "enum/tokenKind.enum"
+#define HANDLE_ENUM(n, sn) sn,
+#include "../enum/tokenKind.enum"
 #undef HANDLE_ENUM
 };
 

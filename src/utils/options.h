@@ -16,5 +16,7 @@
 //调试断言 断言失败是否直接关闭
 #define DEBUG_ASSERT_CLOSE false
 
+//报告系统的输出文本缓冲区大小
+#define REPORT_BUFFER_SIZE 512
 
 #endif //IS_OPTIONS_H

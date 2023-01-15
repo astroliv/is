@@ -1,11 +1,14 @@
 #include "ilexer.h"
 #include <cstdio>
 #include <cctype>
+#include "../utils/ireport.h"
 
 //ANT -> Token to be Analyzed
 #define ANT thiToken
 
+//macro for advance()
 #define initANTData()                       \
+skipBlanks();                               \
 ANT.extract.setData(nextCharPtr - 1);       \
 ANT.value.i64 = 0;                          \
 ANT.pos = pos;
@@ -24,8 +27,8 @@ void Lexer::advance() {
 	nexToken = secToken;
 	secToken = ANT;
 
-	skipBlanks();                   //跳过空白符
-	initANTData();               //设置ANT初始状态
+//	skipBlanks();                   //跳过空白符,此句已被下一句包含
+	initANTData();                  //设置ANT初始状态
 	ANT.kind = TokenKind::eof;      //设置类型初始值
 
 	while (curChar != '\0') {       //循环判断
@@ -43,8 +46,7 @@ void Lexer::advance() {
 			case '/':
 				if (matchNextChar('/') || matchNextChar('*')) {
 					skipCommit(curChar == '*');
-					skipBlanks();
-					initANTData();
+					initANTData();//重走一遍初始化流程
 					continue;
 				}
 				ANT.kind = TokenKind::div;
@@ -83,7 +85,10 @@ void Lexer::advance() {
 				} else if (isdigit(curChar)) {
 					parseNum();
 				} else {
-					assert(false, "Unsupported char '%c'", curChar);
+					reportMsg(RepId::unsupportedChar, this, curChar);
+					getNextChar();//pass掉当前这个unsupportedChar
+					initANTData();//重走一遍初始化流程
+					continue;
 				}
 				return;
 		}
@@ -103,9 +108,9 @@ void Lexer::init() {
 }
 
 void Lexer::readFile() {
-	assert(~fileName != nullptr, "Unreachable Branch!");//TODO error
+	if (~fileName == nullptr) { reportMsg(RepId::fileNameNullptr, nullptr); }
 	FILE *fp = fopen(~fileName, "r");
-	assert(fp != nullptr, "Read file failed!");//TODO error
+	if (fp == nullptr) { reportMsg(RepId::failToReadFile, nullptr, ~fileName); }
 	fseek(fp, 0L, SEEK_END);
 	uint32_t fileSize = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);
@@ -143,7 +148,7 @@ void Lexer::parseNum() {
 		if (curChar == '.') { dotNum++; }
 		getNextChar();
 	}
-	assert(dotNum <= 1, "Invalid number format.")//TODO error
+	if (dotNum > 1) { reportMsg(RepId::invalidNumberFormat, this); }
 	isize length = nextCharPtr - ~ANT.extract - 1;
 	ANT.kind = TokenKind::num;
 	ANT.extract.setLength(length);
@@ -153,7 +158,7 @@ void Lexer::parseNum() {
 void Lexer::parseString() {
 	getNextChar();
 	while (curChar != '\0' && curChar != '\n' && curChar != '"') { getNextChar(); }
-	assert(curChar == '"', "unterminated string.");//TODO error
+	if (curChar != '"') { reportMsg(RepId::unterminatedString, this); }
 	isize length = nextCharPtr - ~ANT.extract;
 	getNextChar();//此时的curChar是'"'
 	ANT.extract.setLength(length);

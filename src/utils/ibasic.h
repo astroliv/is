@@ -1,6 +1,6 @@
 //这里定义一些实现用于VM的基础构建
-#ifndef IS_BASIC_H
-#define IS_BASIC_H
+#ifndef IS_IBASIC_H
+#define IS_IBASIC_H
 
 #include "istring.h"
 
@@ -19,4 +19,4 @@ union Value {
 	refString *fstr;
 };
 
-#endif //IS_BASIC_H
+#endif //IS_IBASIC_H

@@ -1,0 +1,5 @@
+1*2+3-(6 - 8 ** 7);//qwq aline commit
+2+5;/* awa 
+block commit */1+2;
+lexer++;
+"cas"+ 123;//type error

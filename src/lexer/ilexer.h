@@ -19,24 +19,23 @@ public:
 	Lexer() = default;                   //无参构造
 	explicit Lexer(const char *file);    //文件构造
 
-	void advance(); //推进Token解析,即获取下一个Token
+	void advance(); //推进Token,即获取下一个Token
 
 private:
 	void init();            //初始化
-
 	void readFile();        //读指定文件
 
 	void skipBlanks();              //跳过空白字符
 	void skipCommit(bool isBlock);  //跳过注释
 
-	void parseString();             //解析字符串
 	void parseNum();                //解析数字
+	void parseString();             //解析字符串
 	void parseId(TokenKind kind);   //解析标识符
 
 	TokenKind idOrKeyword(refString &str); //判断是否为关键词
 
-	void getNextChar();     //推进到下一字符
-	bool matchNextChar(char value);   //匹配下一个字符,成功返回true并推进字符
+	void getNextChar();               //推进到下一字符
+	bool matchNextChar(char value);   //匹配下一个字符,成功返回true并推进一次字符
 };
 
 

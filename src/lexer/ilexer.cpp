@@ -5,8 +5,9 @@
 //ANT -> Token to be Analyzed
 #define ANT thiToken
 
-#define setANTPosition()                    \
+#define initANTData()                       \
 ANT.extract.setData(nextCharPtr - 1);       \
+ANT.value.i64 = 0;                          \
 ANT.pos = pos;
 
 
@@ -14,15 +15,6 @@ Lexer::Lexer(const char *file) {
 	fileName = file;
 	readFile();
 	init();
-}
-
-void Lexer::init() {
-	nextCharPtr = (char *) (code + 1);
-	curChar = code[0];
-	advance();//推进到thiToken
-	advance();//推进到secToken
-	advance();//推进到nexToken
-	advance();//推进到curToken
 }
 
 void Lexer::advance() {
@@ -33,7 +25,7 @@ void Lexer::advance() {
 	secToken = ANT;
 
 	skipBlanks();                   //跳过空白符
-	setANTPosition();               //设置ANT初始状态
+	initANTData();               //设置ANT初始状态
 	ANT.kind = TokenKind::eof;      //设置类型初始值
 
 	while (curChar != '\0') {       //循环判断
@@ -52,7 +44,7 @@ void Lexer::advance() {
 				if (matchNextChar('/') || matchNextChar('*')) {
 					skipCommit(curChar == '*');
 					skipBlanks();
-					setANTPosition();
+					initANTData();
 					continue;
 				}
 				ANT.kind = TokenKind::div;
@@ -84,28 +76,40 @@ void Lexer::advance() {
 			case '"':
 				ANT.kind = TokenKind::str;
 				parseString();
-				break;
+				return;
 			default:
-				//TODO parseId()
-				//TODO parseNum()
-				break;
+				if (isalpha(curChar) || curChar == '_') {
+					parseId(TokenKind::unk);
+				} else if (isdigit(curChar)) {
+					parseNum();
+				} else {
+					assert(false, "Unsupported char '%c'", curChar);
+				}
+				return;
 		}
 		ANT.extract.setLength(nextCharPtr - ~ANT.extract);
 		getNextChar();
 		return;
 	}
+}
 
-
+void Lexer::init() {
+	nextCharPtr = (char *) (code + 1);
+	curChar = code[0];
+	advance();//推进到thiToken
+	advance();//推进到secToken
+	advance();//推进到nexToken
+	advance();//推进到curToken
 }
 
 void Lexer::readFile() {
-	assert(fileName.getData() != nullptr, "Unreachable Branch!");
-	FILE *fp = fopen(fileName.getData(), "r");
-	assert(fp != nullptr, "Read file failed!");
+	assert(~fileName != nullptr, "Unreachable Branch!");//TODO error
+	FILE *fp = fopen(~fileName, "r");
+	assert(fp != nullptr, "Read file failed!");//TODO error
 	fseek(fp, 0L, SEEK_END);
 	uint32_t fileSize = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);
-	char *_code = (char *) calloc(fileSize + 1, 1); // 这里最好用calloc不然会出bug(new出来的未清零)
+	char *_code = (char *) calloc(fileSize + 1, 1);
 	fread(_code, 1, fileSize, fp);
 	_code[fileSize] = '\0';
 	fclose(fp);
@@ -114,27 +118,6 @@ void Lexer::readFile() {
 
 void Lexer::skipBlanks() {
 	while (isspace(curChar)) { getNextChar(); }
-}
-
-void Lexer::getNextChar() {
-	if (curChar != '\0') {
-		pos.column++;        //推进列号
-		if (curChar == '\n') //遇到了换行符
-		{
-			pos.line++;     //推进行号
-			pos.column = 1; //重置列号
-		}
-		curChar = *nextCharPtr++; //推进字符
-	}
-}
-
-bool Lexer::matchNextChar(char value) {
-	if (*nextCharPtr == value) {
-		//仅推进一次是因为,advance的switch语句里也会推进
-		getNextChar();
-		return true;
-	}
-	return false;
 }
 
 void Lexer::skipCommit(bool isBlock) {
@@ -154,29 +137,27 @@ void Lexer::skipCommit(bool isBlock) {
 	}
 }
 
-void Lexer::parseString() {
-	getNextChar();
-	while (curChar != '\0' && curChar != '\n' && curChar != '"') {
-		getNextChar();
-	}
-	assert(curChar == '"', "unterminated string.");//TODO error
-	getNextChar();
-	isize length = nextCharPtr - ~ANT.extract - 1;
-	ANT.extract.setLength(length);
-	ANT.value.fstr = new refString(~ANT.extract + 1, length - 2);
-}
-
 void Lexer::parseNum() {
 	uint8_t dotNum = 0;
 	while (isdigit(curChar) || curChar == '.') {
 		if (curChar == '.') { dotNum++; }
 		getNextChar();
 	}
-	assert(dotNum == 1, "Invalid number format.")//TODO error
+	assert(dotNum <= 1, "Invalid number format.")//TODO error
 	isize length = nextCharPtr - ~ANT.extract - 1;
 	ANT.kind = TokenKind::num;
 	ANT.extract.setLength(length);
 	ANT.value.f64 = strtod(~ANT.extract, nullptr);
+}
+
+void Lexer::parseString() {
+	getNextChar();
+	while (curChar != '\0' && curChar != '\n' && curChar != '"') { getNextChar(); }
+	assert(curChar == '"', "unterminated string.");//TODO error
+	isize length = nextCharPtr - ~ANT.extract;
+	getNextChar();//此时的curChar是'"'
+	ANT.extract.setLength(length);
+	ANT.value.fstr = new refString(~ANT.extract + 1, length - 2);
 }
 
 void Lexer::parseId(TokenKind kind) {
@@ -191,6 +172,26 @@ TokenKind Lexer::idOrKeyword(refString &str) {
 //	TokenKind kind = isKeyword(str);
 //	if (kind == TokenKind::unk) { kind = TokenKind::id; }
 	return TokenKind::id;
+}
+
+void Lexer::getNextChar() {
+	if (curChar != '\0') {
+		++pos.column;            //推进列号
+		if (curChar == '\n') {   //遇到了换行符
+			++pos.line;          //推进行号
+			pos.column = 1;      //重置列号
+		}
+		curChar = *(nextCharPtr++); //推进字符
+	}
+}
+
+bool Lexer::matchNextChar(char value) {
+	if (*nextCharPtr == value) {
+		//仅推进一次是因为,advance的switch语句里也会推进
+		getNextChar();
+		return true;
+	}
+	return false;
 }
 
 

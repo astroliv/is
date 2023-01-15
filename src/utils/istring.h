@@ -32,10 +32,10 @@ public:
 	explicit refString(const char *str);    //常量构造
 	explicit refString(stringMeta &meta);   //基元构造
 
-	void setMeta(stringMeta &meta);         //设置基元
-	void setMeta(char *str, isize len);     //设置基元
-	void setData(char *str);                //设置数据
-	void setLength(isize len);              //设置长度
+	void setMeta(stringMeta &meta);                  //设置基元
+	void setMeta(char *str, isize len);              //设置基元
+	void setData(char *str, bool checkLen = false);  //设置数据
+	void setLength(isize len);                       //设置长度
 
 	void clearMeta();                       //清空基元
 };
@@ -46,7 +46,7 @@ public:
 	string() = default;                         //无参构造
 	string(const char *str, isize len);         //补全构造
 	explicit string(const char *str);           //常量构造
-	explicit string(stringMeta str);            //基元构造
+	explicit string(stringMeta strMeta);        //基元构造
 	string(const string &str);                  //复制构造
 
 	~string();                                  //析构

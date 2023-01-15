@@ -50,9 +50,12 @@ inline void refString::setMeta(char *str, isize len) {
 	length = len;
 }
 
-inline void refString::setData(char *str) {
+inline void refString::setData(char *str, bool checkLen) {
 	data = (char *) str;
-	for (; str[length] != '\0'; ++length) {}
+	if (checkLen) {
+		length = 0;
+		for (; str[length] != '\0'; ++length) {}
+	}
 }
 
 void refString::setLength(isize len) {

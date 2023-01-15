@@ -2,15 +2,51 @@
 #include "utils/iarray.h"
 #include "utils/ibytecode.h"
 #include "utils/istring.h"
+#include "lexer/ilexer.h"
 
 void testArray();
 void testString();
+void testFree();
+void testLexer();
+
+class TestFree {
+public:
+	TestFree() { printf("TestFree:Test create.\n"); };
+
+	~TestFree() { printf("~TestFree:Test free!\n"); }
+};
+
+TestFree retTestFree() {
+	TestFree tmp;
+	return tmp;
+}
+
+void testFree() {
+	printf("fn:testFree->begin.\n");
+	for (isize i = 0; i < 8; ++i) {
+		printf("for->begin.\n");
+		retTestFree();
+		printf("for->end.\n");
+	}
+	printf("fn:testFree->end.\n");
+}
 
 int main() {
 //    testArray();
-	testString();
+//	testString();
+	testLexer();
+//	testFree();
 	return 0;
 }
+
+void testLexer() {
+	Lexer lex(R"(E:\projects\is\script\test.is)");
+	while (lex.preToken.kind != TokenKind::eof) {
+		printf("%s\n", ~lex.curToken.dump());
+		lex.advance();
+	}
+}
+
 
 void testString() {
 

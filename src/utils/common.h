@@ -1,17 +1,14 @@
+//这里放的是一些基础的工具函数/宏,和类型定义
 #ifndef IS_COMMON_H
 #define IS_COMMON_H
 
 #include "options.h"
 #include <cstdint>
 
-//所有自写容器的索引类型
-typedef uint32_t isize;
+typedef uint32_t isize; //本程序所有的索引所使用的类型,将这个修改到特定类型可以起到32/64位适配的作用
+typedef uint8_t byte;   //字节
 
-//字节
-typedef uint8_t byte;
-
-//将输入数字向上对齐到2的整次幂
-isize ceilToPowerOf2(isize num);
+isize ceilToPowerOf2(isize num);    //将输入数字向上对齐到2的整次幂
 
 #ifdef DEBUG_MODE
 

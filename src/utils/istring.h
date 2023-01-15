@@ -1,3 +1,4 @@
+//字符串类的实现 (注:有两种)
 #ifndef IS_ISTRING_H
 #define IS_ISTRING_H
 

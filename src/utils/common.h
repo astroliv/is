@@ -2,11 +2,11 @@
 #ifndef IS_COMMON_H
 #define IS_COMMON_H
 
-#include "options.h"
+#include "ioptions.h"
 #include <cstdint>
 
-typedef uint32_t isize; //本程序所有的索引所使用的类型,将这个修改到特定类型可以起到32/64位适配的作用
-typedef uint8_t byte;   //字节
+using isize = uint32_t; //本程序所有的索引所使用的类型,将这个修改到特定类型可以起到32/64位适配的作用
+using byte = uint8_t;   //字节
 
 
 isize ceilToPowerOf2(isize num);    //将输入数字向上对齐到2的整次幂
@@ -38,7 +38,7 @@ void assert(bool logicexpr, const char *msg, ...);
 #endif
 
 #else
-#define assert(logicExpr, msg, ...);
+#define assert(logicExpr, msg, ...) ;
 #endif
 
 #endif //IS_COMMON_H

@@ -9,4 +9,4 @@ atom          -> <value> | <id> | var_assign
               -> <LPAREN> expr <RPAREN>
 var_assign    -> [let] <id> <equal> expr
 
-1+2**3**4-2
+

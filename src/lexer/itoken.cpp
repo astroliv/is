@@ -2,9 +2,9 @@
 #include <cstdio>
 
 const char *tokenKindName[] = {
-#define HANDLE_ENUM(n, sn) sn,
+#define loadEnum(n) #n,
 #include "../enum/tokenKind.enum"
-#undef HANDLE_ENUM
+#undef loadEnum
 };
 
 string Token::dump() const {

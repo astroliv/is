@@ -9,9 +9,9 @@ struct Position {
 };
 
 enum class TokenKind : uint8_t {
-	#define HANDLE_ENUM(n, sn) n,
+	#define loadEnum(n) n,
 	#include "../enum/tokenKind.enum"
-	#undef HANDLE_ENUM
+	#undef loadEnum
 };
 
 extern const char *tokenKindName[];

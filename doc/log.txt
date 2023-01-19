@@ -15,3 +15,17 @@
         +加入宏定义断言
 <2023/1/13>改Clion配色方案
     =改完了,将oneDarkPro改成了我习惯的模样
+<2023/1/14> -> <2023/1/16>
+    文件更新:
+        <tokenKind.enum>
+            +加入了该枚举描述文件,用于描述Token的各个类型
+        <lexer.h/cpp>
+            +完成了词法分析器框架
+        <ireport.h/cpp & repId.enum>
+            +加入了报错系统
+        <imodifier.h>
+            +加入了修饰器,作为类型系统的工具,用于将一组布尔信息作为bit存到一个integer内,节省空间
+        <icompiler.h/cpp>
+            +加入CompileUnit,用于编译单文件
+        <ivm.h/cpp>
+            +仅仅初始定义了一下VM(空哒)

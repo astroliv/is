@@ -19,6 +19,10 @@ public:
 	Lexer() = default;                   //无参构造
 	explicit Lexer(const char *file);    //文件构造
 
+	~Lexer();                            //析构
+
+	void init(const char *file);         //初始化
+
 	void advance(); //推进Token,即获取下一个Token
 
 private:

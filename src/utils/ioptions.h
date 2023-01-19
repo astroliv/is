@@ -1,6 +1,6 @@
 //提供一些可供调控的编译设置选项
-#ifndef IS_OPTIONS_H
-#define IS_OPTIONS_H
+#ifndef IS_IOPTIONS_H
+#define IS_IOPTIONS_H
 
 //下面这些是debug选项
 
@@ -19,4 +19,4 @@
 //报告系统的输出文本缓冲区大小
 #define REPORT_BUFFER_SIZE 512
 
-#endif //IS_OPTIONS_H
+#endif //IS_IOPTIONS_H

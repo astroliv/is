@@ -15,13 +15,14 @@ protected:
 	char *data{nullptr};
 
 public:
-	stringMeta() = default;         //无参构造
+	stringMeta() = default;                 //无参构造
 
-	isize getLength() const;        //获取字符串长度
-	const char *getData();          //获取字符串数据指针
+	isize getLength() const;                //获取字符串长度
+	const char *getData();                  //获取字符串数据指针
 
-	char *operator~();              //获取字符串数据指针
-	char &operator[](isize idx);    //取指定索引字符的引用
+	char *operator~();                      //获取字符串数据指针
+	char &operator[](isize idx);            //取指定索引字符的引用
+	bool operator==(const stringMeta &an);  //与其他字符串比较,是否相同
 
 };
 

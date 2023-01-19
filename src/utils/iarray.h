@@ -6,9 +6,13 @@
 #include "common.h"
 
 
+template<class T>
+using EqFn = bool (*)(T, T);   //自定义比较类型T是否相等的函数,为了解决操作符==的逻辑无法满足要求的情况
+
 //可变长数组
 template<class T>
 class Array {
+protected:
 	isize capacity = 0;
 	isize usedSize = 0;
 	T *data = nullptr;
@@ -25,6 +29,17 @@ public:
 
 	void set(isize idx, const T &value);//设置指定idx处的成员内容.需保证idx<usedSize,超出范围则返回false
 	T &get(isize idx);                  //获取指定位置成员.需保证idx<usedSize,否则报错
+	T *getPtr(isize idx);               //获取指定位置成员的指针,这是个不太安全的方法,但是它是需要的
+	isize find(const T &value);         //正序寻找指定的值,并返回其在改容器内的idx,找不到就返回usedSize
+	isize bfind(const T &value);        //倒序寻找指定的值,并返回其在改容器内的idx,找不到就返回usedSize
+	isize reg(const T &value);          //注册value,若数组內无该内容则append并返回其idx,否则返回有相同内容的成员的idx
+	isize breg(const T &value);          //注册value,若数组內无该内容则append并返回其idx,否则返回有相同内容的成员的idx,该函数的查找使用倒序的
+
+	isize find(const T &value, EqFn<T> fn);         //此方法将使用fn进行比较
+	isize bfind(const T &value, EqFn<T> fn);        //此方法将使用fn进行比较
+	isize reg(const T &value, EqFn<T> fn);          //此方法将使用fn进行比较
+	isize breg(const T &value, EqFn<T> fn);         //此方法将使用fn进行比较
+
 
 	isize getCapacity();                //返回数组最大容量
 	isize getUsedSize();                //返回数组已使用容量
@@ -80,7 +95,7 @@ void Array<T>::append(const T &value) {
 
 template<class T>
 T &Array<T>::pop() {
-	assert(usedSize != 0, "No Array members can pop up.");
+	assert(usedSize != 0, "No Array members can read up.");
 	return data[--usedSize];
 }
 
@@ -90,10 +105,77 @@ void Array<T>::set(isize idx, const T &value) {
 	data[idx] = value;
 }
 
+
 template<class T>
 T &Array<T>::get(isize idx) {
 	assert(idx < usedSize, "Index [%u] out of range.", idx);
 	return data[idx];
+}
+
+template<class T>
+inline T *Array<T>::getPtr(isize idx) {
+	assert(idx < usedSize, "Index [%u] out of range.", idx);
+	return data + idx;
+}
+
+template<class T>
+isize Array<T>::find(const T &value) {
+	for (isize i = 0; i < usedSize; ++i) {
+		if (data[i] == value) { return i; }
+	}
+	return usedSize;
+}
+
+template<class T>
+isize Array<T>::bfind(const T &value) {
+	for (isize i = usedSize - 1; i != -1; --i) {
+		if (data[i] == value) { return i; }
+	}
+	return usedSize;
+}
+
+template<class T>
+isize Array<T>::reg(const T &value) {
+	isize idx = find(value);
+	if (idx == usedSize) { append(value); }
+	return idx;
+}
+
+template<class T>
+isize Array<T>::breg(const T &value) {
+	isize idx = bfind(value);
+	if (idx == usedSize) { append(value); }
+	return idx;
+}
+
+template<class T>
+isize Array<T>::find(const T &value, EqFn<T> fn) {
+	for (isize i = 0; i < usedSize; ++i) {
+		if (fn(data[i], value)) { return i; }
+	}
+	return usedSize;
+}
+
+template<class T>
+isize Array<T>::bfind(const T &value, EqFn<T> fn) {
+	for (isize i = usedSize - 1; i != -1; --i) {
+		if (fn(data[i], value)) { return i; }
+	}
+	return usedSize;
+}
+
+template<class T>
+isize Array<T>::reg(const T &value, EqFn<T> fn) {
+	isize idx = find(value, fn);
+	if (idx == usedSize) { append(value); }
+	return idx;
+}
+
+template<class T>
+isize Array<T>::breg(const T &value, EqFn<T> fn) {
+	isize idx = bfind(value, fn);
+	if (idx == usedSize) { append(value); }
+	return idx;
 }
 
 template<class T>
@@ -111,8 +193,8 @@ T &Array<T>::operator[](isize idx) {
 	return get(idx);
 }
 
-//指令流
-typedef Array<byte> Instream;
+//字节流
+using ByteStream = Array<byte>;
 
 
 #endif //IS_IARRAY_H

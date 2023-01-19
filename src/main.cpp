@@ -1,19 +1,67 @@
 #include <cstdio>
+#include <cstring>
 #include "utils/iarray.h"
 #include "utils/ibytecode.h"
 #include "utils/istring.h"
 #include "utils/ireport.h"
 #include "lexer/ilexer.h"
+#include "compiler/icompiler.h"
+#include "vm/ivm.h"
+#include "utils/imodifier.h"
 
 void testArray();
 void testString();
+void testCompound();
 void testLexer();
+void testCompiler();
 
 int main() {
-//  testArray();
+//	testArray();
 //	testString();
 	testLexer();
+	testCompiler();
+//	testCompound();
 	return 0;
+}
+
+
+void testCompound() {
+	Instream in;
+	in.byteStream = new ByteStream(16);
+	in.write(Bytecode::ldc, 0, 4);
+	in.write(0, 4);
+	in.write(Bytecode::ldc, 0, 4);
+	in.write(1, 4);
+	in.write(Bytecode::add);
+	in.write(Bytecode::ldc, 0, 4);
+	in.write(1, 4);
+	in.write(Bytecode::ldc, 0, 4);
+	in.write(2, 4);
+	in.write(Bytecode::mul);
+	in.write(Bytecode::ldc, 0, 4);
+	in.write(2, 4);
+	in.write(Bytecode::ldc, 0, 4);
+	in.write(3, 4);
+	in.write(Bytecode::div);
+	in.write(Bytecode::end);
+	for (isize i = 0; i < in.byteStream->getUsedSize(); ++i) {
+		printf("%d ", in.byteStream->get(i));
+	}
+	printf("\n%u\n", in.byteStream->reg(2));
+	for (isize i = 0; in.byteStream->get(i) != (byte) Bytecode::end; i += in.advLen) {
+		printf("%s\n", ~in.dump(i));
+	}
+}
+
+void testCompiler() {
+	auto vm = new VM();
+	CompileUnit cu(R"(E:\projects\is\script\test.is)", vm);
+	cu.compile();
+	Instream in;
+	in.byteStream = cu.instream.byteStream;
+	for (isize i = 0; in.byteStream->get(i) != (byte) Bytecode::end; i += in.advLen) {
+		printf("%s\n", ~in.dump(i));
+	}
 }
 
 void testLexer() {
@@ -22,15 +70,24 @@ void testLexer() {
 		printf("%s\n", ~lex.curToken.dump());
 		lex.advance();
 	}
-	unreachableBranch();
 }
-
 
 void testString() {
 
 	const char *strInit = "123";
 	string a(strInit);
 	string b(strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
+	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
 	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
 
 
@@ -64,12 +121,7 @@ void testArray() {
 	vary[3] = 12;
 	vary[4] = 5;
 	int32_t ary[4] = {1, 2, 3, 4};
-	writeArg(vary, -1);
-	writeArg(vary, -1);
-	writeArg(vary, -1);
-	writeArg(vary, -1);
-	writeArg(vary, -1);
-	printf("%llu\n", readArg(vary, 5));
+
 	for (isize i = 0; i < vary.getUsedSize(); ++i) {
 		printf("vary [%d]:%d\n", i, vary[i]);
 	}
@@ -77,6 +129,16 @@ void testArray() {
 	vary[666] = 0;
 	printf("A statement after index out of range.\n");
 	vary[666] = 0;
+	isize idx = vary.reg(121);
+	printf("reg(121):%u,vary[%u]:%u\n", idx, idx, vary[idx]);
+	for (isize i = 0; i < vary.getUsedSize(); ++i) {
+		printf("vary [%d]:%d\n", i, vary[i]);
+	}
+
+	char *array = new char[10];
+	memcpy(array, "qwq,awa", 8);
+	printf("\n%s\n", array);
 }
+
 
 

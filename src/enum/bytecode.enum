@@ -1,0 +1,23 @@
+//loadEnum(n, effect, opNum, ...)
+//effect       该字节码对栈空间的影响量
+//opNum        该字节码的参数个数
+//...          该字节码所带参数的长度
+
+//placeholder
+loadEnum(unk,+0,0)
+
+//constLoading
+loadEnum(ldc,+1,2,4,4)
+
+//mathOperate
+loadEnum(add,-1,0)    //加
+loadEnum(sub,-1,0)    //减
+loadEnum(mul,-1,0)    //乘
+loadEnum(div,-1,0)    //除
+loadEnum(mod,-1,0)    //余
+loadEnum(pow,-1,0)    //幂
+loadEnum(neg,+0,0)    //反
+
+//identify
+loadEnum(end,+0,0)
+loadEnum(pass,+0,0)

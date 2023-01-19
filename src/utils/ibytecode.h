@@ -2,13 +2,22 @@
 #ifndef IS_IBYTECODE_H
 #define IS_IBYTECODE_H
 
-#include "iarray.h"
+#include "common.h"
 
-//变长字节码参数的写入
-void writeArg(Instream &in, uint64_t arg);
+enum class Bytecode : byte {
+	#define loadEnum(n, effect, opNum, ...) n,
+	#include "../enum/bytecode.enum"
+	#undef loadEnum
+};
 
-//变长字节码参数的读取
-uint64_t readArg(Instream &in, isize idx);
+struct BytecodeInfo {
+	const char *strName{nullptr};       //该字节码名称的字符串形式
+	int8_t effect{0};                   //对栈空间的影响量
+	int8_t opNum{0};                    //参数个数
+	int8_t fopLen[2]{0};                //各个参数的字节数
+	//由于我设计的字节码的参数最多才只有两个,于是就给fopLen数组宽度设为2
+};
 
+extern BytecodeInfo bytecodeInfo[];
 
 #endif //IS_IBYTECODE_H

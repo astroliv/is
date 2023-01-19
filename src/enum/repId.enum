@@ -1,27 +1,23 @@
-//HANDLE_ENUM(n, sn ,field, level, fmt)
+//loadEnum(n, field, level, fmt)
 //field 该RepId的所属领域
 //level 该RepId的严重等级
 //fmt   该RepId的格式文本
 
 //placeholder
-HANDLE_ENUM(unk, "unknown", unk, unk, "Unknown msg.")
+loadEnum(unk, unk, unk, "Unknown msg.")
 
 //core fatal
-HANDLE_ENUM(unreachableBranch, "unreachableBranch", core, fatal,
-                "%s:%u:1: Unreachable branch reached!")
-HANDLE_ENUM(fileNameNullptr, "fileNameNullptr", core, fatal,
-                "File name pointer is null!")
-HANDLE_ENUM(failToReadFile, "failToReadFile", core, fatal,
-                "Fail to read file: \"%s\".")
+loadEnum(unreachableBranch, core, fatal, "%s:%u:1: Unreachable branch reached!")
+loadEnum(fileNameNullptr, core, fatal, "File name pointer is null!")
+loadEnum(failToReadFile, core, fatal, "Fail to read file: \"%s\".")
 
 //lexer error
-HANDLE_ENUM(unsupportedChar, "unsupportedChar", lexer, error,
-               "Unsupported char '%c'.")
-HANDLE_ENUM(invalidNumberFormat, "invalidNumberFormat", lexer, error,
-               "Invalid number format.")
-HANDLE_ENUM(unterminatedString, "unterminatedString", lexer, error,
-               "Unterminated string.")
+loadEnum(unsupportedChar, lexer, error, "Unsupported char '%c'.")
+loadEnum(invalidNumberFormat, lexer, error, "Invalid number format.")
+loadEnum(unterminatedString, lexer, error, "Unterminated string.")
 
 //compiler error
+loadEnum(assertTokenKindFailure, compiler, error, "Expect <%s>, but got <%s>.")
+
 
 

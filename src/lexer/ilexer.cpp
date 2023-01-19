@@ -15,6 +15,17 @@ ANT.pos = pos;
 
 
 Lexer::Lexer(const char *file) {
+	init(file);
+}
+
+Lexer::~Lexer() {
+	if (code == nullptr) { return; }
+	delete[] code;
+}
+
+
+void Lexer::init(const char *file) {
+	assert(~fileName == nullptr, "Lexer cannot be initialized twice!");
 	fileName = file;
 	readFile();
 	init();
@@ -198,5 +209,8 @@ bool Lexer::matchNextChar(char value) {
 	}
 	return false;
 }
+
+
+
 
 

@@ -1,34 +1,33 @@
-//HANDLE_ENUM(n,sn)
+//loadEnum(n)
 //n  为枚举名
-//sn 为名称的字符串形式
 
-HANDLE_ENUM(unk, "unknown")
+loadEnum(unk)
 
-HANDLE_ENUM(id, "id")
-HANDLE_ENUM(num, "number")
-HANDLE_ENUM(str, "string")
+loadEnum(id)
+loadEnum(num)
+loadEnum(str)
 
-HANDLE_ENUM(add, "add")
-HANDLE_ENUM(sub, "sub")
-HANDLE_ENUM(mul, "mul")
-HANDLE_ENUM(div, "div")
-HANDLE_ENUM(pow, "pow")
-HANDLE_ENUM(mod, "mod")
+loadEnum(add)
+loadEnum(sub)
+loadEnum(mul)
+loadEnum(div)
+loadEnum(pow)
+loadEnum(mod)
 
 //分号
-HANDLE_ENUM(end, "end")
+loadEnum(end)
 
 //小括号
-HANDLE_ENUM(lpare, "lpare")
-HANDLE_ENUM(rpare, "rpare")
+loadEnum(lpare)
+loadEnum(rpare)
 
 //中括号
-HANDLE_ENUM(lbracket, "lbracket")
-HANDLE_ENUM(rbracket, "rbracket")
+loadEnum(lbracket)
+loadEnum(rbracket)
 
 //大括号
-HANDLE_ENUM(lbrace, "lbrace")
-HANDLE_ENUM(rbrace, "rbrace")
+loadEnum(lbrace)
+loadEnum(rbrace)
 
 //终结符
-HANDLE_ENUM(eof, "eof")
+loadEnum(eof)

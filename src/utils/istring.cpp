@@ -24,7 +24,16 @@ char *stringMeta::operator~() {
 char &stringMeta::operator[](isize idx) {
 	assert(idx < length, "Index [%u] out of range.", idx)
 	return data[idx];
-};
+}
+
+bool stringMeta::operator==(const stringMeta &an) {
+	if (length != an.length) { return false; }      //长度都不同,不可能相等
+	if (data == an.data) { return true; }           //长度相同,且数据地址相同,为全等字符串
+	for (isize i = 0; i < length; ++i) {            //遍历一下字符串的数据
+		if (data[i] != an.data[i]) { return false; }//有不一样的地方就返回false
+	}
+	return true;
+}
 
 //引用式string
 

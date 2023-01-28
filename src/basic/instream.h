@@ -2,8 +2,8 @@
 #ifndef IS_INSTREAM_H
 #define IS_INSTREAM_H
 
-#include "iarray.h"
-#include "istring.h"
+#include "../container/iarray.h"
+#include "../string/istring.h"
 #include "ibytecode.h"
 
 class Instream {

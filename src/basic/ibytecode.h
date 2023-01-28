@@ -2,11 +2,11 @@
 #ifndef IS_IBYTECODE_H
 #define IS_IBYTECODE_H
 
-#include "common.h"
+#include "../utils/common.h"
 
 enum class Bytecode : byte {
 	#define loadEnum(n, effect, opNum, ...) n,
-	#include "../enum/bytecode.enum"
+	#include "bytecode.enum"
 	#undef loadEnum
 };
 

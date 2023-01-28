@@ -1,7 +1,7 @@
 #include "ilexer.h"
 #include <cstdio>
 #include <cctype>
-#include "../utils/ireport.h"
+#include "../report/ireport.h"
 
 //ANT -> Token to be Analyzed
 #define ANT thiToken
@@ -9,7 +9,7 @@
 //macro for advance()
 #define initANTData()                       \
 skipBlanks();                               \
-ANT.extract.setData(nextCharPtr - 1);       \
+ANT.extract.data = nextCharPtr - 1;         \
 ANT.value.i64 = 0;                          \
 ANT.pos = pos;
 
@@ -103,7 +103,7 @@ void Lexer::advance() {
 				}
 				return;
 		}
-		ANT.extract.setLength(nextCharPtr - ~ANT.extract);
+		ANT.extract.length = nextCharPtr - ~ANT.extract;
 		getNextChar();
 		return;
 	}
@@ -162,7 +162,7 @@ void Lexer::parseNum() {
 	if (dotNum > 1) { reportMsg(RepId::invalidNumberFormat, this); }
 	isize length = nextCharPtr - ~ANT.extract - 1;
 	ANT.kind = TokenKind::num;
-	ANT.extract.setLength(length);
+	ANT.extract.length = length;
 	ANT.value.f64 = strtod(~ANT.extract, nullptr);
 }
 
@@ -172,19 +172,20 @@ void Lexer::parseString() {
 	if (curChar != '"') { reportMsg(RepId::unterminatedString, this); }
 	isize length = nextCharPtr - ~ANT.extract;
 	getNextChar();//此时的curChar是'"'
-	ANT.extract.setLength(length);
-	ANT.value.fstr = new refString(~ANT.extract + 1, length - 2);
+	ANT.extract.length = length;
+	ANT.value.fsp = new refString(~ANT.extract + 1, length - 2);
 }
 
 void Lexer::parseId(TokenKind kind) {
 	while (isalnum(curChar) || curChar == '_') { getNextChar(); }
 	isize length = nextCharPtr - ~ANT.extract - 1;
-	ANT.extract.setLength(length);
+	ANT.extract.length = length;
 	ANT.kind = (kind != TokenKind::unk ? kind : idOrKeyword(ANT.extract));
 }
 
 TokenKind Lexer::idOrKeyword(refString &str) {
-//TODO
+//TODO idOrKeyword
+
 //	TokenKind kind = isKeyword(str);
 //	if (kind == TokenKind::unk) { kind = TokenKind::id; }
 	return TokenKind::id;

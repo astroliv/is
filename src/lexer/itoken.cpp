@@ -3,7 +3,7 @@
 
 const char *tokenKindName[] = {
 #define loadEnum(n) #n,
-#include "../enum/tokenKind.enum"
+#include "tokenKind.enum"
 #undef loadEnum
 };
 
@@ -16,7 +16,7 @@ string Token::dump() const {
 	} else if (kind == TokenKind::str) {
 		sprintf(buffer, "kind:%-10s extract:%-8s value:%-18s pos:[%u,%u]",
 		        tokenKindName[(uint8_t) kind], ~string(extract),
-		        ~string(*value.fstr), pos.line, pos.column);
+		        ~string(*value.fsp), pos.line, pos.column);
 	} else {
 		sprintf(buffer, "kind:%-10s extract:%-8s value:%-18s pos:[%u,%u]",
 		        tokenKindName[(uint8_t) kind], ~string(extract),

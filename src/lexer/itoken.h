@@ -1,7 +1,7 @@
 #ifndef IS_ITOKEN_H
 #define IS_ITOKEN_H
 
-#include "../utils/ibasic.h"
+#include "../basic/ibasic.h"
 
 struct Position {
 	uint32_t line{1};
@@ -10,7 +10,7 @@ struct Position {
 
 enum class TokenKind : uint8_t {
 	#define loadEnum(n) n,
-	#include "../enum/tokenKind.enum"
+	#include "tokenKind.enum"
 	#undef loadEnum
 };
 

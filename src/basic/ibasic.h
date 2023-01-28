@@ -2,23 +2,20 @@
 #ifndef IS_IBASIC_H
 #define IS_IBASIC_H
 
-#include "istring.h"
-#include "iarray.h"
-#include "imodifier.h"
+#include "../string/istring.h"
+#include "../container/iarray.h"
+#include "../container/imodifier.h"
 
+//语言的值都将以Value的形式存于内存中,该类型占8Byte
 union Value {
-	int8_t i8;
-	int16_t i16;
-	int32_t i32;
-	int64_t i64;
-	uint8_t ui8;
-	uint16_t ui16;
-	uint32_t ui32;
-	uint64_t ui64;
-	float f32;
-	double f64;
-	string *str;
-	refString *fstr;
+	int64_t i64;    //64bit int
+	uint64_t ui64;  //64bit unsigned int
+	double f64;     //64bit float
+	string *sp;     //str ptr
+	refString *fsp; //refstr ptr
+	Value *vp;      //value ptr
+	byte *ip8;      //8bit int ptr
+
 
 	bool operator==(const Value &other) const;
 };
@@ -33,7 +30,7 @@ enum class VarModifier : uint8_t {
 
 //primitive - 原生(C/C++)函数指针
 //其函数签名: Value fn(Value* args);
-using prim = Value(*)(Value *);
+using prim = Value (*)(Value *);
 
 union Fn {
 	prim prim{};        //可能是原生函数(primitive)

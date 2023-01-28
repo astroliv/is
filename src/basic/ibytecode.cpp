@@ -2,6 +2,6 @@
 
 BytecodeInfo bytecodeInfo[] = {
 		#define loadEnum(n, effect, opNum, ...) {#n, effect, opNum, {__VA_ARGS__}},
-		#include "../enum/bytecode.enum"
+		#include "bytecode.enum"
 		#undef loadEnum
 };

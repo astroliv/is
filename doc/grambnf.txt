@@ -10,3 +10,4 @@ atom          -> <value> | <id> | var_assign
 var_assign    -> [let] <id> <equal> expr
 
 
+main.cpp:74:6: error: expected primary-expression before '/' token

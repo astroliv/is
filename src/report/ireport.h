@@ -2,7 +2,7 @@
 #ifndef IS_IREPORT_H
 #define IS_IREPORT_H
 #include <cstdint>
-#include "ioptions.h"
+#include "../utils/ioptions.h"
 
 //不应到达的分支
 #ifdef DEBUG_MODE
@@ -20,7 +20,7 @@ enum class RepLevel : uint8_t { unk, info, waring, error, fatal };
 enum class RepId : uint16_t {
 	// repId belongLevel belongField repFmtText
 	#define loadEnum(n, field, level, fmt) n,
-	#include "../enum/repId.enum"
+	#include "repId.enum"
 
 	#undef loadEnum
 };

@@ -43,7 +43,7 @@ refString::refString(const char *str, isize len) {
 }
 
 refString::refString(const char *str) {
-	setData((char *) str);
+	data = (char *) str;
 }
 
 refString::refString(stringMeta &meta) {
@@ -56,18 +56,6 @@ inline void refString::setMeta(stringMeta &meta) {
 
 inline void refString::setMeta(char *str, isize len) {
 	data = str;
-	length = len;
-}
-
-inline void refString::setData(char *str, bool checkLen) {
-	data = (char *) str;
-	if (checkLen) {
-		length = 0;
-		for (; str[length] != '\0'; ++length) {}
-	}
-}
-
-void refString::setLength(isize len) {
 	length = len;
 }
 

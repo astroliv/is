@@ -2,7 +2,7 @@
 #ifndef IS_IMODIFIER_H
 #define IS_IMODIFIER_H
 
-#include "common.h"
+#include "../utils/common.h"
 
 //关于为什么叫Modifier(修饰器)而不叫Integrator(整合器):
 //由于该工具是为了将函数与变量修饰符的有无信息整合储存起来,从而节省空间(开关信息用Array<bool>存过于浪费)

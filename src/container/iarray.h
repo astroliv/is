@@ -3,11 +3,10 @@
 #define IS_IARRAY_H
 
 #include <cstdint>
-#include "common.h"
-
+#include "../utils/common.h"
 
 template<class T>
-using EqFn = bool (*)(T, T);   //自定义比较类型T是否相等的函数,为了解决操作符==的逻辑无法满足要求的情况
+using EqFn = bool (*)(const T &, const T &);   //自定义比较类型T是否相等的函数,为了解决操作符==的逻辑无法满足要求的情况
 
 //可变长数组
 template<class T>
@@ -19,6 +18,8 @@ protected:
 public:
 	Array() = default;                  //无参构造
 	explicit Array(isize cap);          //容量构造
+
+	~Array();                           //析构函数
 
 	void resize(isize newCap);          //重置大小,会保留原数据,参数newCap为0则清空
 	void ensure(isize remain);          //确保剩余空间足够达到指定大小,未达到则扩容
@@ -40,6 +41,7 @@ public:
 	isize reg(const T &value, EqFn<T> fn);          //此方法将使用fn进行比较
 	isize breg(const T &value, EqFn<T> fn);         //此方法将使用fn进行比较
 
+	void clear();                       //清除数据
 
 	isize getCapacity();                //返回数组最大容量
 	isize getUsedSize();                //返回数组已使用容量
@@ -50,6 +52,11 @@ public:
 template<class T>
 Array<T>::Array(isize cap) {
 	resize(cap);
+}
+
+template<class T>
+Array<T>::~Array() {
+	resize(0);
 }
 
 template<class T>
@@ -66,10 +73,11 @@ void Array<T>::resize(isize newCap) { //这是variableArray的灵魂
 		data = new T[newCap];
 		return;
 	}//如果为空则直接新建即可
-	T *newPtr = new T[newCap];//创建新数组
-	for (isize i = 0; i < usedSize; ++i) { newPtr[i] = data[i]; }//复制内容
-	delete data;  //删除旧数组
-	data = newPtr;//使用新数组
+	T *newPtr = new T[newCap];          //创建新数组
+	isize loop = MIN(usedSize, newCap); //因为有可能newCap<usedSize
+	for (isize i = 0; i < loop; ++i) { newPtr[i] = data[i]; }//复制内容
+	delete[] data;  //删除旧数组
+	data = newPtr;  //使用新数组
 }
 
 template<class T>
@@ -105,12 +113,12 @@ void Array<T>::set(isize idx, const T &value) {
 	data[idx] = value;
 }
 
-
 template<class T>
 T &Array<T>::get(isize idx) {
 	assert(idx < usedSize, "Index [%u] out of range.", idx);
 	return data[idx];
 }
+
 
 template<class T>
 inline T *Array<T>::getPtr(isize idx) {
@@ -176,6 +184,11 @@ isize Array<T>::breg(const T &value, EqFn<T> fn) {
 	isize idx = bfind(value, fn);
 	if (idx == usedSize) { append(value); }
 	return idx;
+}
+
+template<class T>
+void Array<T>::clear() {
+	resize(0);
 }
 
 template<class T>

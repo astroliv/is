@@ -8,7 +8,7 @@
 RepIdInfo repIdInfo[] = {
 		#define loadEnum(n, field, level, fmt) \
         {#n, RepField::field, RepLevel::level, fmt},
-		#include "../enum/repId.enum"
+		#include "repId.enum"
 		#undef loadEnum
 };
 
@@ -26,16 +26,16 @@ void reportMsg(RepId id, void *ptr, ...) {
 			unreachableBranch();
 			return;
 		case RepLevel::info:
-			format = " \033[0m\033[1;32m info\033[0m: %s";
+			format = " \033[0m\033[1;32minfo\033[0m: %s";
 			break;
 		case RepLevel::waring:
-			format = "\033[0m\033[1;33m warning\033[0m: %s";
+			format = " \033[0m\033[1;33mwarning\033[0m: %s";
 			break;
 		case RepLevel::error:
-			format = "\033[0m\033[1;31m error\033[0m: %s";
+			format = " \033[0m\033[1;31merror\033[0m: %s";
 			break;
 		case RepLevel::fatal:
-			format = "\033[0m\033[1;31m fatal\033[0m: %s";
+			format = " \033[0m\033[1;31mfatal\033[0m: %s";
 			break;
 	}
 	sprintf(tmpbuffer, format, outbuffer);
@@ -61,7 +61,7 @@ void reportMsg(RepId id, void *ptr, ...) {
 			break;
 		}
 		case RepField::vm:
-			sprintf(outbuffer, "vm%s", tmpbuffer);
+			sprintf(outbuffer, "runtime%s", tmpbuffer);
 			break;
 	}
 	printf("%s\n", outbuffer);

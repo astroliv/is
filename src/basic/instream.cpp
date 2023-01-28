@@ -1,5 +1,5 @@
 #include "instream.h"
-#include "ireport.h"
+#include "../report/ireport.h"
 
 Instream::Instream(ByteStream *bst) : byteStream(bst) {}
 
@@ -85,7 +85,7 @@ int64_t Instream::read(isize idx, int8_t operandLen) {
 }
 
 void Instream::writeVarg(uint64_t arg) const {
-	assert(byteStream != nullptr, "byteStream = nullptr!");
+	assert(byteStream != nullptr, "The byteStream pointer is nullptr!");
 	uint8_t i = 0;
 	do {
 		byteStream->append((arg >> 7) && (i < 8) ? arg & 0x7F | 0x80 : arg);
@@ -93,7 +93,7 @@ void Instream::writeVarg(uint64_t arg) const {
 }
 
 uint64_t Instream::readVarg(isize idx) {
-	assert(byteStream != nullptr, "byteStream = nullptr!");
+	assert(byteStream != nullptr, "The byteStream pointer is nullptr!");
 	uint64_t result = 0;
 	uint8_t tmp, i = 0;
 	do {
@@ -105,7 +105,7 @@ uint64_t Instream::readVarg(isize idx) {
 }
 
 string Instream::dump(isize idx) {
-	assert(byteStream != nullptr, "byteStream = nullptr!");
+	assert(byteStream != nullptr, "The byteStream pointer is nullptr!");
 	uint64_t args[2] = {0};           //字节码的参数
 	char buffer[64] = {0};            //创建缓冲区
 	byte in = byteStream->get(idx);   //指令的索引(instruction)

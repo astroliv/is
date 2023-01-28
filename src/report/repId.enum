@@ -1,0 +1,28 @@
+//loadEnum(n, field, level, fmt)
+//field 该RepId的所属领域
+//level 该RepId的严重等级
+//fmt   该RepId的格式文本
+
+//placeholder
+loadEnum(unk, unk, unk, "unknown msg.")
+
+//core fatal
+loadEnum(unreachableBranch, core, fatal, "%s:%u:1: unreachable branch reached!")
+loadEnum(fileNameNullptr, core, fatal, "file name pointer is null!")
+loadEnum(failToReadFile, core, fatal, "fail to read file: \"%s\".")
+
+//core info
+loadEnum(stackResized, core, info, "the stack has bee resize to %u.")
+
+//lexer error
+loadEnum(unsupportedChar, lexer, error, "unsupported char '%c' .")
+loadEnum(invalidNumberFormat, lexer, error, "invalid number format.")
+loadEnum(unterminatedString, lexer, error, "unterminated string.")
+
+//compiler error
+loadEnum(assertTokenKindFailure, compiler, error, "expect token:%s, but got token:%s.")
+loadEnum(unknownStatement, compiler, error, "unknown statement that cannot be matched.")
+loadEnum(illegalExpr, compiler, error, "this is a non-grammatical expression.")
+loadEnum(expectedExpr, compiler, error, "expected expression before token:%s.")
+
+

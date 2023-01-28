@@ -11,6 +11,9 @@ using byte = uint8_t;   //字节
 
 isize ceilToPowerOf2(isize num);    //将输入数字向上对齐到2的整次幂
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b) )
+#define MIN(a, b) ((a) < (b) ? (a) : (b) )
+
 #ifdef DEBUG_MODE
 
 #ifndef DEBUG_MODE_USING_MICRO_ASSERT

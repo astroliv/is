@@ -8,6 +8,9 @@ public:
 	const char *code{nullptr};   //源码指针
 	char *nextCharPtr{nullptr};  //下一个字符的指针
 	char curChar{0};             //当前字符
+	int16_t unLpare{0};          //未匹配的左小括号数量
+	int16_t unLbracket{0};       //未匹配的左中括号数量
+	int16_t unLbrace{0};         //未匹配的左大括号数量
 	Position pos;                //当前解析到的位置
 
 	//解析Token列表
@@ -33,7 +36,7 @@ private:
 	void readFile();        //读指定文件
 
 	void skipBlanks();              //跳过空白字符
-	void skipCommit(bool isBlock);  //跳过注释
+	void skipComment(bool isBlock); //跳过注释
 
 	void parseNum();                //解析数字
 	void parseString();             //解析字符串

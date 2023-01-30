@@ -4,8 +4,8 @@
 #include "../basic/ibasic.h"
 
 struct Position {
-	uint32_t line{1};
-	uint32_t column{1};
+	isize line{1};
+	isize column{1};
 };
 
 enum class TokenKind : uint8_t {
@@ -13,8 +13,6 @@ enum class TokenKind : uint8_t {
 	#include "tokenKind.enum"
 	#undef loadEnum
 };
-
-extern const char *tokenKindName[];
 
 struct Token {
 	refString extract;              //对应的文本
@@ -25,5 +23,10 @@ struct Token {
 	string dump() const;            //输出信息
 };
 
+extern const char *TokenKindNameList[];
+
+inline const char *tokenKindName(TokenKind tk) {
+	return TokenKindNameList[(isize) tk];
+}
 
 #endif //IS_ITOKEN_H

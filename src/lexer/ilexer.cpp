@@ -56,7 +56,7 @@ void Lexer::advance() {
 				break;
 			case '/':
 				if (matchNextChar('/') || matchNextChar('*')) {
-					skipCommit(curChar == '*');
+					skipComment(curChar == '*');
 					initANTData();//重走一遍初始化流程
 					continue;
 				}
@@ -67,21 +67,27 @@ void Lexer::advance() {
 				break;
 			case '(':
 				ANT.kind = TokenKind::lpare;
+				++unLpare;
 				break;
 			case ')':
 				ANT.kind = TokenKind::rpare;
+				--unLpare;
 				break;
 			case '[':
 				ANT.kind = TokenKind::lbracket;
+				++unLbracket;
 				break;
 			case ']':
 				ANT.kind = TokenKind::rbracket;
+				--unLbracket;
 				break;
 			case '{':
 				ANT.kind = TokenKind::lbrace;
+				++unLbrace;
 				break;
 			case '}':
 				ANT.kind = TokenKind::rbrace;
+				--unLbrace;
 				break;
 			case ';':
 				ANT.kind = TokenKind::end;
@@ -123,7 +129,7 @@ void Lexer::readFile() {
 	FILE *fp = fopen(~fileName, "r");
 	if (fp == nullptr) { reportMsg(RepId::failToReadFile, nullptr, ~fileName); }
 	fseek(fp, 0L, SEEK_END);
-	uint32_t fileSize = ftell(fp);
+	uint64_t fileSize = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);
 	char *_code = (char *) calloc(fileSize + 1, 1);
 	fread(_code, 1, fileSize, fp);
@@ -136,12 +142,16 @@ void Lexer::skipBlanks() {
 	while (isspace(curChar)) { getNextChar(); }
 }
 
-void Lexer::skipCommit(bool isBlock) {
+void Lexer::skipComment(bool isBlock) {
 	while (curChar != '\0') {
 		if (isBlock) {
 			if (curChar == '*' && matchNextChar('/')) {
 				getNextChar();
 				return;
+			}
+			if (*nextCharPtr == '\0') {//到结尾还是没有块注释结束符,便整个警告
+				getNextChar();
+				reportMsg(RepId::unterminatedBlockComment, this);
 			}
 		} else {
 			if (curChar == '\n') {

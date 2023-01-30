@@ -18,6 +18,10 @@
 #define TTK lexer.thiToken.kind
 #define TT (lexer.thiToken)
 
+//一个简化代码用的宏 (Cur Token Not Equal End & Rpare)
+#define CTKNEER CTK != TokenKind::end && CTK != TokenKind::rpare
+
+//下面是几个宏,用于处理匹配报错的
 
 //惰性匹配,匹配失败就摆烂返回false(其实就是CaseFalseReturnFalse)
 #define inertMatch(fn) \
@@ -25,22 +29,21 @@ if(!(fn)) { return validMatch = false; }
 
 //强制匹配,匹配失败就开摆,报错返回一气呵成
 //(为了防止回到Caller的时候因返回false重复报错,搞了个errCurStmt来判定)
-#define forceMatch(fn, id, ...)         \
-if (!(fn)) {                            \
-    if (!errCurStmt) {                  \
-    errCurFile = errCurStmt = true;     \
-    reportMsg(id, this,##__VA_ARGS__);  \
-    }                                   \
-    return validMatch = false;          \
+#define forceMatch(fn, id, ...)             \
+if (!(fn)) {                                \
+    if (!errCurStmt) {                      \
+    reportMsg(id, this,##__VA_ARGS__);      \
+    }                                       \
+    return validMatch = false;              \
 }
 
-//竭力匹配,竭力匹配完当前语句,即使有失败也不放弃,报个错接着匹配(该语句是以sign结尾)
-#define striveMatch(fn, sign, id, ...)  \
-while (!(fn)){                          \
-    errCurFile = errCurStmt = true;     \
-    reportMsg(id, this,##__VA_ARGS__);  \
-    if (CTK != sign) { advance(); }     \
-    else { break; }                     \
+//竭力匹配,竭力匹配完当前语句,即使有失败也不放弃,报个错接着匹配,若sign为false则停止
+#define striveMatch(fn, sign, id, ...)      \
+while (!(fn) && CTK != TokenKind::eof) {    \
+    errCurFile = errCurStmt = true;         \
+    reportMsg(id, this,##__VA_ARGS__);      \
+    if (sign) { advance(); }                \
+    else { break; }                         \
 }
 
 
@@ -51,7 +54,6 @@ CompileUnit::CompileUnit(const char *file, VM *_vm) : vm(_vm) {
 	module = new Module();//以后会换成~compiler.moduleList
 	module->file = file;
 	instream.byteStream = new ByteStream(16);
-
 }
 
 void CompileUnit::compile() {
@@ -65,33 +67,40 @@ inline Token CompileUnit::advance() {
 
 inline bool CompileUnit::matchNTK(TokenKind kind) {
 	if (NTK != kind) { return false; }
-	advance();  //Pass CurToken
-	advance();  //Pass NexToken
+	advance();  //Pass curToken
+	advance();  //Pass nexToken
 	return true;
 }
 
 inline bool CompileUnit::matchCTK(TokenKind kind) {
 	if (CTK != kind) { return false; }
-	advance();
+	advance();//Pass curToken
 	return true;
 }
 
 inline void CompileUnit::assertCTK(TokenKind kind) {
 	if (CTK != kind) {
 		reportMsg(RepId::assertTokenKindFailure, this,
-		          tokenKindName[(uint16_t) kind], tokenKindName[(uint16_t) CTK]);
+		          tokenKindName(kind), tokenKindName(CTK));
+		return;//由于当前token不是目前预期的,那么就认为其为下一个匹配所需的,不应被Pass掉
 	}
-	advance();//Pass CurToken
+	advance();//Pass curToken
+}
+
+inline void CompileUnit::skipCurStmt() {
+	if (!errCurStmt) { return; }
+	while (CTK != TokenKind::end && CTK != TokenKind::eof) { advance(); }
+	errCurStmt = false;
 }
 
 bool CompileUnit::stmts() {
 	while (CTK != TokenKind::eof) {
-		if (!expr()) { errCurFile = true; }//目前情况下所有的语句只能是表达式,若不是则错误
-
-		if (errCurStmt) {//跳到当前语句的结束位置
-			while (CTK != TokenKind::end && CTK != TokenKind::eof) { advance(); }
-			errCurStmt = false;
-		}
+		if (!expr()) { errCurFile = true; }
+		skipCurStmt();
+		if (lexer.unLpare || lexer.unLbracket || lexer.unLbrace) {
+			reportMsg(RepId::unmatchedBracketsStmt, this);
+		}//这只是一个提示,因为实际上assertTokenKindFailure也会对该情况进行报错
+		lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
 		assertCTK(TokenKind::end);
 	}
 	instream.write(Bytecode::end);
@@ -101,14 +110,12 @@ bool CompileUnit::stmts() {
 
 bool CompileUnit::expr() {
 	inertMatch(term());
-	while (true) {//若匹配到该循环内的任何分支,则必定是强制匹配,若匹配失败则报错
-		if (matchCTK(TokenKind::add)) {//编译加法
-			striveMatch(term(), TokenKind::end,
-			            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+	while (true) {
+		if (matchCTK(TokenKind::add)) {
+			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 			instream.write(Bytecode::add);
-		} else if (matchCTK(TokenKind::sub)) {//编译减法
-			striveMatch(term(), TokenKind::end,
-			            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+		} else if (matchCTK(TokenKind::sub)) {
+			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 			instream.write(Bytecode::sub);
 		} else { break; }
 	}
@@ -117,18 +124,15 @@ bool CompileUnit::expr() {
 
 bool CompileUnit::term() {
 	inertMatch(factor());
-	while (true) {//若匹配到该循环内的任何分支,则必定是强制匹配,若匹配失败则报错
-		if (matchCTK(TokenKind::mul)) {//编译乘法,强制匹配
-			striveMatch(factor(), TokenKind::end,
-			            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+	while (true) {
+		if (matchCTK(TokenKind::mul)) {
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 			instream.write(Bytecode::mul);
-		} else if (matchCTK(TokenKind::div)) {//编译除法
-			striveMatch(factor(), TokenKind::end,
-			            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+		} else if (matchCTK(TokenKind::div)) {
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 			instream.write(Bytecode::div);
-		} else if (matchCTK(TokenKind::mod)) {//编译取余
-			striveMatch(factor(), TokenKind::end,
-			            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+		} else if (matchCTK(TokenKind::mod)) {
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 			instream.write(Bytecode::mod);
 		} else { break; }
 	}
@@ -136,13 +140,11 @@ bool CompileUnit::term() {
 }
 
 bool CompileUnit::factor() {
-	if (matchCTK(TokenKind::add)) {//取本身
-		striveMatch(factor(), TokenKind::end,
-		            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+	if (matchCTK(TokenKind::add)) {
+		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 	} else if (matchCTK(TokenKind::sub)) {
-		striveMatch(factor(), TokenKind::end,
-		            RepId::expectedExpr, tokenKindName[(isize) CTK]);
-		instream.write(Bytecode::neg);//取相反数
+		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+		instream.write(Bytecode::neg);
 	} else {
 		inertMatch(power());
 	}
@@ -151,10 +153,9 @@ bool CompileUnit::factor() {
 
 bool CompileUnit::power() {
 	inertMatch(atom());
-	while (true) {//若匹配到该循环内的任何分支,则必定是强制匹配,若匹配失败则报错
-		if (matchCTK(TokenKind::pow)) {//编译幂运算
-			striveMatch(factor(), TokenKind::end,
-			            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+	while (true) {
+		if (matchCTK(TokenKind::pow)) {
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 			instream.write(Bytecode::pow);
 		} else { break; }
 	}
@@ -162,21 +163,21 @@ bool CompileUnit::power() {
 }
 
 bool CompileUnit::atom() {
-	if (matchCTK(TokenKind::num)) {//编译数值字面量
+	if (matchCTK(TokenKind::num)) {
 		instream.write(Bytecode::ldc, 0, 4);
 		instream.write(module->constList.reg(PT.value), 4);
-	} else if (matchCTK(TokenKind::str)) {//编译字符串字面量
+	} else if (matchCTK(TokenKind::str)) {
 		instream.write(Bytecode::ldc, 0, 4);
 		instream.write(module->constList.reg(PT.value, &cmpFstrOfValue), 4);
-	} else if (matchCTK(TokenKind::lpare)) {//括号包含的表达式
-		striveMatch(expr(), TokenKind::rpare,
-		            RepId::expectedExpr, tokenKindName[(isize) CTK]);
+	} else if (matchCTK(TokenKind::lpare)) {
+		striveMatch(expr(), CTK != TokenKind::rpare, RepId::expectedExpr, tokenKindName(CTK));
 		assertCTK(TokenKind::rpare);
 	} else {
 		return validMatch = false;
 	}
 	return validMatch = true;
 }
+
 
 bool cmpFstrOfValue(const Value &a, const Value &b) {
 	//由于Array<T>内查找与注册等方法的比较都是直接作==运算,那么对于Value类型,就要定义一个==的操作符重载,才能

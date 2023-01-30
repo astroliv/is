@@ -14,6 +14,9 @@ loadEnum(failToReadFile, core, fatal, "fail to read file: \"%s\".")
 //core info
 loadEnum(stackResized, core, info, "the stack has bee resize to %u.")
 
+//lexer warning
+loadEnum(unterminatedBlockComment, lexer, warning, "unterminated block comment.")
+
 //lexer error
 loadEnum(unsupportedChar, lexer, error, "unsupported char '%c' .")
 loadEnum(invalidNumberFormat, lexer, error, "invalid number format.")
@@ -24,5 +27,6 @@ loadEnum(assertTokenKindFailure, compiler, error, "expect token:%s, but got toke
 loadEnum(unknownStatement, compiler, error, "unknown statement that cannot be matched.")
 loadEnum(illegalExpr, compiler, error, "this is a non-grammatical expression.")
 loadEnum(expectedExpr, compiler, error, "expected expression before token:%s.")
+loadEnum(unmatchedBracketsStmt, compiler, error, "the brackets of this expression are not paired.")
 
 

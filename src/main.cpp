@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstring>
+#include <windows.h>
 #include "container/iarray.h"
 #include "container/istack.h"
 #include "basic/ibytecode.h"
@@ -17,10 +18,10 @@ void testLexer();
 void testCompiler();
 
 int main() {
-	setbuf(stdout, nullptr);
+//	setbuf(stdout, nullptr);
 //	testArray();
 //	testString();
-	testLexer();
+//	testLexer();
 	testCompiler();
 //	testCompound();
 	return 0;
@@ -67,7 +68,10 @@ void testCompound() {
 void testCompiler() {
 	auto vm = new VM();
 	CompileUnit cu(R"(E:\projects\is\script\test.is)", vm);
+	isize t = GetTickCount();
 	cu.compile();
+	t = GetTickCount() - t;
+	printf("TimeConsuming:%ums\n", t);
 	Instream in(cu.instream.byteStream);
 	for (isize i = 0; in.byteStream->get(i) != (byte) Bytecode::end; i += in.advLen) {
 		printf("%s\n", ~in.dump(i));

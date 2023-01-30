@@ -5,8 +5,8 @@
 #include "ioptions.h"
 #include <cstdint>
 
-using isize = uint32_t; //本程序所有的索引所使用的类型,将这个修改到特定类型可以起到32/64位适配的作用
-using byte = uint8_t;   //字节
+using isize = uint32_t; //本程序所有的索引所使用的类型固定为ui32
+using byte = uint8_t;   //本程序所有的字节所使用的类型固定为ui8
 
 
 isize ceilToPowerOf2(isize num);    //将输入数字向上对齐到2的整次幂

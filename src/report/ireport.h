@@ -3,6 +3,7 @@
 #define IS_IREPORT_H
 #include <cstdint>
 #include "../utils/ioptions.h"
+#include "../utils/common.h"
 
 //不应到达的分支
 #ifdef DEBUG_MODE
@@ -15,13 +16,12 @@ reportMsg(RepId::unreachableBranch, nullptr, __FILE__, __LINE__)
 //报告所属领域
 enum class RepField : uint8_t { unk, core, lexer, compiler, vm };
 //报告严重等级
-enum class RepLevel : uint8_t { unk, info, waring, error, fatal };
+enum class RepLevel : uint8_t { unk, info, warning, error, fatal };
 //报告标识符
 enum class RepId : uint16_t {
 	// repId belongLevel belongField repFmtText
 	#define loadEnum(n, field, level, fmt) n,
 	#include "repId.enum"
-
 	#undef loadEnum
 };
 
@@ -32,7 +32,11 @@ struct RepIdInfo {
 	const char *repFmt{nullptr};
 };
 
-extern RepIdInfo repIdInfo[];
+extern RepIdInfo RepIdInfoList[];
+
+inline RepIdInfo repIdInfo(RepId repId) {
+	return RepIdInfoList[(isize) repId];
+}
 
 void reportMsg(RepId id, void *ptr, ...);
 

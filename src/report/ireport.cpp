@@ -5,7 +5,7 @@
 #include <cstdarg>
 #include <cstdlib>
 
-RepIdInfo repIdInfo[] = {
+RepIdInfo RepIdInfoList[] = {
 		#define loadEnum(n, field, level, fmt) \
         {#n, RepField::field, RepLevel::level, fmt},
 		#include "repId.enum"
@@ -13,7 +13,7 @@ RepIdInfo repIdInfo[] = {
 };
 
 void reportMsg(RepId id, void *ptr, ...) {
-	RepIdInfo idInfo = repIdInfo[(uint16_t) id];   //获取该RepId的其他信息
+	RepIdInfo idInfo = repIdInfo(id);   //获取该RepId的其他信息
 	char outbuffer[REPORT_BUFFER_SIZE] = {0};
 	char tmpbuffer[REPORT_BUFFER_SIZE] = {0};
 	va_list args;
@@ -26,16 +26,16 @@ void reportMsg(RepId id, void *ptr, ...) {
 			unreachableBranch();
 			return;
 		case RepLevel::info:
-			format = " \033[0m\033[1;32minfo\033[0m: %s";
+			format = "\033[0m\033[1;32minfo\033[0m: %s";
 			break;
-		case RepLevel::waring:
-			format = " \033[0m\033[1;33mwarning\033[0m: %s";
+		case RepLevel::warning:
+			format = "\033[0m\033[1;33mwarning\033[0m: %s";
 			break;
 		case RepLevel::error:
-			format = " \033[0m\033[1;31merror\033[0m: %s";
+			format = "\033[0m\033[1;31merror\033[0m: %s";
 			break;
 		case RepLevel::fatal:
-			format = " \033[0m\033[1;31mfatal\033[0m: %s";
+			format = "\033[0m\033[1;31mfatal\033[0m: %s";
 			break;
 	}
 	sprintf(tmpbuffer, format, outbuffer);
@@ -44,24 +44,25 @@ void reportMsg(RepId id, void *ptr, ...) {
 			unreachableBranch();
 			return;
 		case RepField::core:
-			sprintf(outbuffer, "core%s", tmpbuffer);
+			sprintf(outbuffer, "core %s", tmpbuffer);
 			break;
 		case RepField::lexer: { //lexer的情况下需要输出文件名与行列号
 			if (ptr == nullptr) { unreachableBranch(); }
 			auto *lexer = (Lexer *) ptr;
-			sprintf(outbuffer, "%s:%d:%d:%s", ~lexer->fileName,
+			sprintf(outbuffer, "%s:%d:%d: %s", ~lexer->fileName,
 			        lexer->pos.line, lexer->pos.column, tmpbuffer);
 			break;
 		}
 		case RepField::compiler: {
 			if (ptr == nullptr) { unreachableBranch(); }
 			auto *cu = (CompileUnit *) ptr;
-			sprintf(outbuffer, "%s:%d:%d:%s", ~cu->lexer.fileName,
+			cu->errCurFile = cu->errCurStmt = true;
+			sprintf(outbuffer, "%s:%d:%d: %s", ~cu->lexer.fileName,
 			        cu->lexer.curToken.pos.line, cu->lexer.curToken.pos.column, tmpbuffer);
 			break;
 		}
 		case RepField::vm:
-			sprintf(outbuffer, "runtime%s", tmpbuffer);
+			sprintf(outbuffer, "runtime %s", tmpbuffer);
 			break;
 	}
 	printf("%s\n", outbuffer);

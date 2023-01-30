@@ -6,15 +6,7 @@
 #include "../basic/instream.h"
 #include "../basic/ibasic.h"
 
-//寄存器的定义
-//#define ip (reg[0].ip8) //指令寄存器(储存下一条指令头的指针)
-//#define bp (reg[1].vp)  //栈底寄存器(是个指向栈第一个normalSlot的指针)
-//#define sp (reg[2].vp)  //栈顶寄存器(是个指向栈第一个emptySlot的指针)
-//#define up (reg[3].vp)  //栈头寄存器(是个指向栈第一个outSlot的指针,该位置不能使用)
-//#define ax (reg[4])     //通用寄存器
-//#define bx (reg[5])     //通用寄存器
-//#define cx (reg[6])     //通用寄存器
-//#define dx (reg[7])     //通用寄存器
+
 
 //寄存器的索引及所指
 namespace Regist {
@@ -36,6 +28,23 @@ public:
 	VM() = default;                 //默认构造(祖传/笑)
 
 	void execute();                 //执行指令流
+
+
+
+	//下面是一些工具函数,用于读写指令
+
+	void write(Bytecode type);                               //写字节码
+	void write(int64_t operand, int8_t len);                 //写指定字节操作数
+	void write(Bytecode type, int64_t operand, int8_t len);  //写指定字节操作数指令
+
+
+private:
+	//这下面是一些内联函数,由于外部用不到所以设为private
+	Bytecode read();                //读一个字节码并步过
+	int64_t read(int8_t len);       //读指定长度的参数并步过
+
+	void writeVarg(uint64_t arg);   //变长字节码参数的写入
+	uint64_t readVarg();            //变长字节码参数的读取
 
 };
 

@@ -100,7 +100,7 @@ uint64_t Instream::readVarg(isize idx) {
 		tmp = byteStream->get(idx + i);
 		result |= (i < 8 ? tmp & 0x7F : tmp) << (i * 7);
 	} while ((tmp >> 7) && (i++ < 8));
-	advLen += i;//增大步进长度
+	advLen += i + 1;//增大步进长度
 	return result;
 }
 

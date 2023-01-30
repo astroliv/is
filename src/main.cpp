@@ -72,9 +72,13 @@ void testCompiler() {
 	cu.compile();
 	t = GetTickCount() - t;
 	printf("TimeConsuming:%ums\n", t);
-	Instream in(cu.instream.byteStream);
+	Instream in(&vm->instream);
+	vm->reg[Regist::ip].ip8 = vm->instream.getPtr(0);
 	for (isize i = 0; in.byteStream->get(i) != (byte) Bytecode::end; i += in.advLen) {
 		printf("%s\n", ~in.dump(i));
+	}
+	for (isize i = 0; i < vm->instream.getUsedSize(); ++i) {
+		printf("%d ", vm->instream[i]);
 	}
 }
 

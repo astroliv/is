@@ -103,7 +103,7 @@ bool CompileUnit::stmts() {
 		lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
 		assertCTK(TokenKind::end);
 	}
-	instream.write(Bytecode::end);
+	vm->write(Bytecode::end);
 	return validMatch = true;
 }
 
@@ -113,10 +113,10 @@ bool CompileUnit::expr() {
 	while (true) {
 		if (matchCTK(TokenKind::add)) {
 			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			instream.write(Bytecode::add);
+			vm->write(Bytecode::add);
 		} else if (matchCTK(TokenKind::sub)) {
 			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			instream.write(Bytecode::sub);
+			vm->write(Bytecode::sub);
 		} else { break; }
 	}
 	return validMatch = true;
@@ -127,13 +127,13 @@ bool CompileUnit::term() {
 	while (true) {
 		if (matchCTK(TokenKind::mul)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			instream.write(Bytecode::mul);
+			vm->write(Bytecode::mul);
 		} else if (matchCTK(TokenKind::div)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			instream.write(Bytecode::div);
+			vm->write(Bytecode::div);
 		} else if (matchCTK(TokenKind::mod)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			instream.write(Bytecode::mod);
+			vm->write(Bytecode::mod);
 		} else { break; }
 	}
 	return validMatch = true;
@@ -144,7 +144,7 @@ bool CompileUnit::factor() {
 		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 	} else if (matchCTK(TokenKind::sub)) {
 		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-		instream.write(Bytecode::neg);
+		vm->write(Bytecode::neg);
 	} else {
 		inertMatch(power());
 	}
@@ -156,7 +156,7 @@ bool CompileUnit::power() {
 	while (true) {
 		if (matchCTK(TokenKind::pow)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			instream.write(Bytecode::pow);
+			vm->write(Bytecode::pow);
 		} else { break; }
 	}
 	return validMatch = true;
@@ -164,11 +164,9 @@ bool CompileUnit::power() {
 
 bool CompileUnit::atom() {
 	if (matchCTK(TokenKind::num)) {
-		instream.write(Bytecode::ldc, 0, 4);
-		instream.write(module->constList.reg(PT.value), 4);
+		vm->write(Bytecode::ldc, vm->constList.reg(PT.value), -1);
 	} else if (matchCTK(TokenKind::str)) {
-		instream.write(Bytecode::ldc, 0, 4);
-		instream.write(module->constList.reg(PT.value, &cmpFstrOfValue), 4);
+		vm->write(Bytecode::ldc, vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
 	} else if (matchCTK(TokenKind::lpare)) {
 		striveMatch(expr(), CTK != TokenKind::rpare, RepId::expectedExpr, tokenKindName(CTK));
 		assertCTK(TokenKind::rpare);

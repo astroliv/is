@@ -7,7 +7,7 @@
 loadEnum(unk,+0,0)
 
 //constLoading
-loadEnum(ldc,+1,2,4,4)
+loadEnum(ldc,+1,1,-1)
 
 //mathOperate
 loadEnum(add,-1,0)    //加

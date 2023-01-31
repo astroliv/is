@@ -16,6 +16,8 @@ class Modifier {
 public:
 	I data{0};                          //该类仅维护一个I类型的数值
 
+	//下面是工具函数,指定为内联以减少调用开销
+
 	void set(E enumValue, bool value);  //设置该enum对应bit的值为value
 	bool get(E enumValue);              //返回该enum对应bit的值
 
@@ -56,12 +58,12 @@ inline bool Modifier<E, I>::get(E enumValue) {
 }
 
 template<typename E, typename I>
-bool Modifier<E, I>::operator[](E enumValue) {
+inline bool Modifier<E, I>::operator[](E enumValue) {
 	return get(enumValue);
 }
 
 template<typename E, typename I>
-bool Modifier<E, I>::operator[](uint8_t idx) {
+inline bool Modifier<E, I>::operator[](uint8_t idx) {
 	assert((uint8_t) idx > 0, "Unsupported behaviour!");
 	return data & (1 << (idx - 1));
 }

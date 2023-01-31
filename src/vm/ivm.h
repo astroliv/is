@@ -20,7 +20,7 @@ namespace Regist {
 
 class VM {
 public:
-	Value reg[8]{};                 //寄存器
+	Value regist[8]{};                 //寄存器
 	ByteStream instream;            //指令流
 	Array<Value> constList;         //常量表
 	Array<Value> gvarList;          //全局变量表
@@ -29,14 +29,16 @@ public:
 
 	void execute();                 //执行指令流
 
-
-
 	//下面是一些工具函数,用于读写指令
 
 	void write(Bytecode type);                               //写字节码
 	void write(int64_t operand, int8_t len);                 //写指定字节操作数
 	void write(Bytecode type, int64_t operand, int8_t len);  //写指定字节操作数指令
 
+	void push(Value value); //在bp,sp,up管理的栈中进行压入操作
+	Value pop();            //在bp,sp,up管理的栈中进行弹出操作
+
+	string dumpin();        //输出并步过ip对应指令
 
 private:
 	//这下面是一些内联函数,由于外部用不到所以设为private

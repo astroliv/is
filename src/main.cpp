@@ -3,7 +3,6 @@
 #include <windows.h>
 #include "container/iarray.h"
 #include "container/istack.h"
-#include "basic/ibytecode.h"
 #include "string/istring.h"
 #include "report/ireport.h"
 #include "lexer/ilexer.h"
@@ -28,31 +27,6 @@ int main() {
 }
 
 void testCompound() {
-	Instream in;
-	in.byteStream = new ByteStream(16);
-	in.write(Bytecode::ldc, 0, 4);
-	in.write(0, 4);
-	in.write(Bytecode::ldc, 0, 4);
-	in.write(1, 4);
-	in.write(Bytecode::add);
-	in.write(Bytecode::ldc, 0, 4);
-	in.write(1, 4);
-	in.write(Bytecode::ldc, 0, 4);
-	in.write(2, 4);
-	in.write(Bytecode::mul);
-	in.write(Bytecode::ldc, 0, 4);
-	in.write(2, 4);
-	in.write(Bytecode::ldc, 0, 4);
-	in.write(3, 4);
-	in.write(Bytecode::div);
-	in.write(Bytecode::end);
-	for (isize i = 0; i < in.byteStream->getUsedSize(); ++i) {
-		printf("%d ", in.byteStream->get(i));
-	}
-	printf("\n%u\n", in.byteStream->reg(2));
-	for (isize i = 0; in.byteStream->get(i) != (byte) Bytecode::end; i += in.advLen) {
-		printf("%s\n", ~in.dump(i));
-	}
 	Stack<byte> baseStack(1);
 	Stack<byte> stack(1);
 	for (isize i = 0; i < 66; ++i) { baseStack.push(i); }
@@ -71,20 +45,23 @@ void testCompiler() {
 	isize t = GetTickCount();
 	cu.compile();
 	t = GetTickCount() - t;
-	printf("TimeConsuming:%ums\n", t);
-	Instream in(&vm->instream);
-	vm->reg[Regist::ip].ip8 = vm->instream.getPtr(0);
-	for (isize i = 0; in.byteStream->get(i) != (byte) Bytecode::end; i += in.advLen) {
-		printf("%s\n", ~in.dump(i));
+	printf("TimeConsuming : %ums\n", t);
+	printf("Bytes :");
+	for (isize i = 0; i < vm->instream.getUsedSize(); ++i) { printf(" %d", vm->instream[i]); }
+	printf("\n");
+	vm->regist[Regist::ip].ip8 = vm->instream.getPtr(0);
+	while (*vm->regist[Regist::ip].ip8 != (byte) Bytecode::end
+	       && *vm->regist[Regist::ip].ip8 != (byte) Bytecode::unk) {
+		printf("%s\n", ~vm->dumpin());
 	}
-	for (isize i = 0; i < vm->instream.getUsedSize(); ++i) {
-		printf("%d ", vm->instream[i]);
-	}
+	printf("Const List:\n");
+	for (isize i = 0; i < vm->constList.getUsedSize(); ++i) { printf("%lf\n", vm->constList[i].f64); }
+
 }
 
 void testLexer() {
 	Lexer lex(R"(E:\projects\is\script\test.is)");
-	while (lex.preToken.kind != TokenKind::eof) {
+	while (lex.preToken.kind != TokenKind::eof && lex.preToken.kind != TokenKind::unk) {
 		printf("%s\n", ~lex.curToken.dump());
 		lex.advance();
 	}
@@ -97,17 +74,6 @@ void testString() {
 	string b(strInit);
 	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
 	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-	printf("a:%p\tb:%p\tinit:%p\n", ~a, ~b, strInit);
-
 
 //    refString s("refString");
 //    printf("%u\n", s.getLength());
@@ -148,7 +114,7 @@ void testArray() {
 	printf("A statement after index out of range.\n");
 	vary[666] = 0;
 	isize idx = vary.reg(121);
-	printf("reg(121):%u,vary[%u]:%u\n", idx, idx, vary[idx]);
+	printf("regist(121):%u,vary[%u]:%u\n", idx, idx, vary[idx]);
 	for (isize i = 0; i < vary.getUsedSize(); ++i) {
 		printf("vary [%d]:%d\n", i, vary[i]);
 	}

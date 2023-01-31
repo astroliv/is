@@ -51,9 +51,6 @@ bool cmpFstrOfValue(const Value &a, const Value &b);//比较俩Value的fstr数�
 
 CompileUnit::CompileUnit(const char *file, VM *_vm) : vm(_vm) {
 	lexer.init(file);
-	module = new Module();//以后会换成~compiler.moduleList
-	module->file = file;
-	instream.byteStream = new ByteStream(16);
 }
 
 void CompileUnit::compile() {

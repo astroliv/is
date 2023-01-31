@@ -1,7 +1,7 @@
 #include "ivm.h"
 
 //寄存器的定义
-#define ip (reg[Regist::ip].ip8) //指令寄存器(储存下一条指令头的指针)
+#define ip (regist[Regist::ip].ip8) //指令寄存器(储存下一条指令头的指针)
 #define bp (reg[Regist::bp].vp)  //栈底寄存器(是个指向栈第一个normalSlot的指针)
 #define sp (reg[Regist::sp].vp)  //栈顶寄存器(是个指向栈第一个emptySlot的指针)
 #define up (reg[Regist::up].vp)  //栈头寄存器(是个指向栈第一个outSlot的指针,该位置不能使用)
@@ -95,5 +95,33 @@ inline uint64_t VM::readVarg() {
 	} while ((*ip++ >> 7) && (i++ < 8));
 	return result;
 }
+
+string VM::dumpin() {
+	uint64_t args[2] = {0};           //字节码的参数
+	char buffer[64] = {0};            //创建缓冲区
+	Bytecode by = read();             //当前字节码
+	const char *fmt = nullptr;        //格式化文本
+	switch (bytecodeInfo(by).opNum) { //根据参数个数分情况设定
+		case 0://无参字节码
+			fmt = "%-10llu: %s";
+			break;
+		case 1://单参字节码
+			fmt = "%-10llu: %s %llu";
+			args[0] = read(bytecodeInfo(by).fopLen[0]);
+			break;
+		case 2://双参字节码
+			fmt = "%-10llu: %s %llu,%llu";
+			args[0] = read(bytecodeInfo(by).fopLen[0]);//读第一个参数
+			args[1] = read(bytecodeInfo(by).fopLen[1]);//读第二个参数
+			break;
+		default:
+			unreachableBranch();
+			break;
+	}
+	sprintf(buffer, fmt, ip, bytecodeInfo(by).strName, args[0], args[1]);
+	return string(buffer);
+}
+
+
 
 

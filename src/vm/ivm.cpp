@@ -53,7 +53,6 @@ void VM::execute() {
 	}
 }
 
-
 inline Bytecode VM::read() {
 	return (Bytecode) *ip++;
 }

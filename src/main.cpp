@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cmath>
 #include <cstring>
 #include <windows.h>
 #include "container/iarray.h"
@@ -33,35 +34,41 @@ void testCompound() {
 	printf("bstCapacity:%u/%u\n", baseStack.usedSize(), baseStack.capacity());
 	stack.set(baseStack.sp, baseStack.up);
 	stack.push(6);
-	printf("stack.bp : %d baseStack.sp : %d\n", *stack.bp, *baseStack.sp);
+	printf("stack.sb : %d baseStack.sp : %d\n", *stack.bp, *baseStack.sp);
 	for (isize i = 0; baseStack.usedSize() != 0; ++i) {
 		printf("%4u : %-4d\n", i, baseStack.pop());
 	}
 }
 
 void testCompiler() {
+	delete[] (int *) nullptr;
 	auto vm = new VM();
-	CompileUnit cu(R"(E:\projects\is\script\test.is)", vm);
+	Compiler com(vm);
+	CompileUnit &cu = com.cuList[0];
+	cu.init(R"(E:\projects\is\script\test.is)", &com);
 	isize t = GetTickCount();
 	cu.compile();
 	t = GetTickCount() - t;
-	printf("TimeConsuming : %ums\n", t);
-	printf("Bytes :");
-	for (isize i = 0; i < vm->instream.getUsedSize(); ++i) { printf(" %d", vm->instream[i]); }
-	printf("\n");
-	vm->regist[Regist::ip].ip8 = vm->instream.getPtr(0);
-	while (*vm->regist[Regist::ip].ip8 != (byte) Bytecode::end
-	       && *vm->regist[Regist::ip].ip8 != (byte) Bytecode::unk) {
+	printf("Compile Time Consuming: %ums\n", t);
+	printf("Bytes:");
+	for (isize i = 0; i < com.instream.getUsedSize(); ++i) { printf(" %d", com.instream[i]); }
+	printf("\nInstructions:\n");
+	VMPRegist(vm, ib).ip8 = VMPRegist(vm, ip).ip8 = com.instream.getPtr(0);
+	while (*VMPRegist(vm, ip).ip8 != (byte) Bytecode::end
+	       && *VMPRegist(vm, ip).ip8 != (byte) Bytecode::unk) {
 		printf("%s\n", ~vm->dumpin());
 	}
 	printf("Const List:\n");
-	for (isize i = 0; i < vm->constList.getUsedSize(); ++i) { printf("%lf\n", vm->constList[i].f64); }
-
+	for (isize i = 0; i < vm->constList.getUsedSize(); ++i) { printf("%-6d: %f\n", i, vm->constList[i].f64); }
+	VMPRegist(vm, ib).ip8 = VMPRegist(vm, ip).ip8 = com.instream.getPtr(0);
+	vm->execute();
+	printf("\nCalc Result:%f\n", vm->pop().f64);
+	printf("2^64-100=%f\n", pow(2., 64.) - 100.);
 }
 
 void testLexer() {
 	Lexer lex(R"(E:\projects\is\script\test.is)");
-	while (lex.preToken.kind != TokenKind::eof && lex.preToken.kind != TokenKind::unk) {
+	while (lex.preToken.kind != TokenKind::eof) {
 		printf("%s\n", ~lex.curToken.dump());
 		lex.advance();
 	}

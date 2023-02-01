@@ -21,7 +21,6 @@ public:
 	Token secToken;              //下二个token
 	Token thiToken;              //下三个token
 
-
 	Lexer() = default;                   //无参构造
 	explicit Lexer(const char *file);    //文件构造
 

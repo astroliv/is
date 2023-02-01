@@ -103,26 +103,26 @@ void Array<T>::append(const T &value) {
 
 template<class T>
 T &Array<T>::pop() {
-	assert(usedSize != 0, "No Array members can read up.");
+	assert(usedSize != 0, "No Array members can read su.");
 	return data[--usedSize];
 }
 
 template<class T>
 void Array<T>::set(isize idx, const T &value) {
-	assert(idx < usedSize, "Index [%u] out of range.", idx);
+	assert(idx < capacity, "Index [%u] out of range.", idx);
 	data[idx] = value;
 }
 
 template<class T>
 T &Array<T>::get(isize idx) {
-	assert(idx < usedSize, "Index [%u] out of range.", idx);
+	assert(idx < capacity, "Index [%u] out of range.", idx);
 	return data[idx];
 }
 
 
 template<class T>
 inline T *Array<T>::getPtr(isize idx) {
-	assert(idx < usedSize, "Index [%u] out of range.", idx);
+	assert(idx < capacity, "Index [%u] out of range.", idx);
 	return data + idx;
 }
 

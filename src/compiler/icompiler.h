@@ -6,12 +6,13 @@
 #include "../container/iarray.h"
 #include "../container/imodifier.h"
 #include "../basic/ibasic.h"
-#include "../basic/instream.h"
+
+class Compiler;
 
 class CompileUnit {
 public:
 	Lexer lexer;            //该编译单元所使用的词法分析器
-	VM *vm{};               //编译器所服务的虚拟机
+	Compiler *com{};        //所属的编译器
 
 	//下面几个状态标记
 	isize scopeDepth{0};    //当前位置的作用域深度
@@ -20,8 +21,10 @@ public:
 	bool errCurFile{false}; //标记当前文件是否有错误,若有则不会调用VM执行
 	bool errCurStmt{false}; //标记当前语句是否有错误,有则会进行跳过
 
-	CompileUnit() = default;                 //无参构造
-	CompileUnit(const char *file, VM *_vm);  //补全构造
+	CompileUnit() = default;                                 //无参构造
+	explicit CompileUnit(const char *file, Compiler *_com);  //补全构造
+
+	void init(const char *file, Compiler *_com);             //补全初始化
 
 	void compile();     //开始编译
 
@@ -50,5 +53,23 @@ private:
 
 };
 
+//用于整合调度多文件编译
+class Compiler {
+public:
+	Array<CompileUnit> cuList;  //编译单元列表,每个编译单元仅处理编译一个文件
+	ByteStream instream;        //指令流集合,该项目的所有函数指令都在这
+	VM *vm{};                   //编译器服务的虚拟机
+
+	Compiler() = default;       //默认构造
+	explicit Compiler(VM *_vm); //补全构造
+
+	//指令与指令参数的写入
+
+	void write(Bytecode type);                               //写字节码
+	void write(int64_t operand, int8_t len);                 //写指定字节操作数
+	void write(Bytecode type, int64_t operand, int8_t len);  //写指定字节操作数指令
+
+	void writeVarg(uint64_t arg);   //变长字节码参数的写入
+};
 
 #endif //IS_ICOMPILER_H

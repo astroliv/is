@@ -1,61 +1,58 @@
 #include "ivm.h"
+#include <cmath>
 
 //寄存器的定义
-#define ip (regist[Regist::ip].ip8) //指令寄存器(储存下一条指令头的指针)
-#define bp (reg[Regist::bp].vp)  //栈底寄存器(是个指向栈第一个normalSlot的指针)
-#define sp (reg[Regist::sp].vp)  //栈顶寄存器(是个指向栈第一个emptySlot的指针)
-#define up (reg[Regist::up].vp)  //栈头寄存器(是个指向栈第一个outSlot的指针,该位置不能使用)
-#define ax (reg[Regist::ax])     //通用寄存器
-#define bx (reg[Regist::bx])     //通用寄存器
-#define cx (reg[Regist::cx])     //通用寄存器
-#define dx (reg[Regist::dx])     //通用寄存器
+//instruction base,ptr;stack base,ptr,upper;
+#define ib (regist[Regist::ib].ip8) //指令寄存器:储存指令内存空间起始的指针
+#define ip (regist[Regist::ip].ip8) //指令寄存器:储存下一条指令头的指针
+#define sb (regist[Regist::sb].vp)  //栈底寄存器:指向栈第一个可使用slot的指针
+#define sp (regist[Regist::sp].vp)  //栈顶寄存器:指向栈第一个未使用slot的指针
+#define su (regist[Regist::su].vp)  //栈头寄存器:指向栈第一个不可用slot的指针
+#define ax (regist[Regist::ax])     //通用寄存器
+#define bx (regist[Regist::bx])     //通用寄存器
+#define cx (regist[Regist::cx])     //通用寄存器
+#define dx (regist[Regist::dx])     //通用寄存器
+#define ex (regist[Regist::ex])     //通用寄存器
+#define fx (regist[Regist::fx])     //通用寄存器
+#define gx (regist[Regist::gx])     //通用寄存器
+#define r1 (regist[Regist::r1])     //r1寄存器
+#define r2 (regist[Regist::r2])     //r2寄存器
+#define r3 (regist[Regist::r3])     //r3寄存器
+#define r4 (regist[Regist::r4])     //r4寄存器
 
 void VM::execute() {
-
-}
-
-
-void VM::write(Bytecode type) {
-	instream.append((byte) type);
-}
-
-void VM::write(int64_t operand, int8_t len) {
-	switch (len) {//直接穷举,没必要整循环
-		case -1:
-			writeVarg(operand);
-			return;
-		case 1:
-			instream.append(operand);
-			return;
-		case 2:
-			instream.append(operand);
-			instream.append(operand >> 8);
-			return;
-		case 4:
-			instream.append(operand);
-			instream.append(operand >> 8);
-			instream.append(operand >> 16);
-			instream.append(operand >> 24);
-			return;
-		case 8:
-			instream.append(operand);
-			instream.append(operand >> 8);
-			instream.append(operand >> 16);
-			instream.append(operand >> 24);
-			instream.append(operand >> 32);
-			instream.append(operand >> 40);
-			instream.append(operand >> 48);
-			instream.append(operand >> 56);
-			return;
-		default:
-			unreachableBranch();
+//	Value rigValue, lefValue;
+	while (true) {
+		switch (read()) {
+			case Bytecode::neg:
+				sp[-1].f64 = -sp[-1].f64;
+				break;
+			case Bytecode::add:
+				sp[-2].f64 = sp[-2].f64 + sp[-1].f64, --sp;
+				break;
+			case Bytecode::sub:
+				sp[-2].f64 = sp[-2].f64 - sp[-1].f64, --sp;
+				break;
+			case Bytecode::mul:
+				sp[-2].f64 = sp[-2].f64 * sp[-1].f64, --sp;
+				break;
+			case Bytecode::div:
+				sp[-2].f64 = sp[-2].f64 / sp[-1].f64, --sp;
+				break;
+			case Bytecode::pow:
+				sp[-2].f64 = pow(sp[-2].f64, sp[-1].f64), --sp;
+				break;
+			case Bytecode::ldc:
+				push(constList[read(bytecodeInfo(Bytecode::ldc).fopLen[0])]);
+				break;
+			case Bytecode::end:
+				return;
+			default:
+				unreachableBranch();
+		}
 	}
 }
 
-void VM::write(Bytecode type, int64_t operand, int8_t len) {
-	write(type);
-	write(operand, len);
-}
 
 inline Bytecode VM::read() {
 	return (Bytecode) *ip++;
@@ -80,13 +77,6 @@ inline int64_t VM::read(int8_t len) {
 	return 0;
 }
 
-inline void VM::writeVarg(uint64_t arg) {
-	uint8_t i = 0;
-	do {
-		instream.append((arg >> 7) && (i < 8) ? arg & 0x7F | 0x80 : arg);
-	} while ((arg >>= 7) && (i++ < 8));
-}
-
 inline uint64_t VM::readVarg() {
 	uint64_t result = 0;
 	uint8_t i = 0;
@@ -97,29 +87,75 @@ inline uint64_t VM::readVarg() {
 }
 
 string VM::dumpin() {
-	uint64_t args[2] = {0};           //字节码的参数
-	char buffer[64] = {0};            //创建缓冲区
-	Bytecode by = read();             //当前字节码
-	const char *fmt = nullptr;        //格式化文本
-	switch (bytecodeInfo(by).opNum) { //根据参数个数分情况设定
+	byte *dip = ip;
+	uint64_t args[2] = {0};
+	char buffer[64] = {0};
+	Bytecode by = read();
+	const char *fmt = nullptr;
+	switch (bytecodeInfo(by).opNum) {
 		case 0://无参字节码
-			fmt = "%-10llu: %s";
+			fmt = "%-6llu: %s";
 			break;
 		case 1://单参字节码
-			fmt = "%-10llu: %s %llu";
+			fmt = "%-6llu: %s %llu";
 			args[0] = read(bytecodeInfo(by).fopLen[0]);
 			break;
 		case 2://双参字节码
-			fmt = "%-10llu: %s %llu,%llu";
-			args[0] = read(bytecodeInfo(by).fopLen[0]);//读第一个参数
-			args[1] = read(bytecodeInfo(by).fopLen[1]);//读第二个参数
+			fmt = "%-6llu: %s %llu,%llu";
+			args[0] = read(bytecodeInfo(by).fopLen[0]);
+			args[1] = read(bytecodeInfo(by).fopLen[1]);
 			break;
 		default:
 			unreachableBranch();
 			break;
 	}
-	sprintf(buffer, fmt, ip, bytecodeInfo(by).strName, args[0], args[1]);
+	sprintf(buffer, fmt, dip - ib, bytecodeInfo(by).strName, args[0], args[1]);
 	return string(buffer);
+}
+
+void VM::resize(isize newCap) {
+	if (newCap == 0) {//清空的情况
+		delete[] sb;
+		sb = sp = su = nullptr;
+	} else if (sb == nullptr) {//初始化的情况
+		sp = sb = new Value[newCap];
+		su = sb + newCap;
+	}//重设容量
+	auto *newBp = new Value[newCap];
+	isize valid = MIN(usedSize(), newCap);//重设容量后的有效成员数
+	for (isize i = 0; i < valid; ++i) { newBp[i] = sb[i]; }//复制内容
+	delete[] sb;
+	sb = newBp;
+	sp = sb + valid;
+	su = sb + newCap;
+}
+
+inline void VM::ensure(isize remain) {
+	if (su - sp >= remain) { return; }
+	resize(ceilToPowerOf2(usedSize() + remain));
+}
+
+void VM::push(Value value) {
+	if (sp == su) {
+		resize(ceilToPowerOf2(capacity() + 1));
+		reportMsg(RepId::stackResized, nullptr, capacity());
+	}
+	*sp++ = value;
+//	printf("psh:sp[-1].f64=%f\n", sp[-1].f64);
+}
+
+Value VM::pop() {
+	assert(sp != sb, "The stack has no member!");
+//	printf("pop:sp[-1].f64=%f\n", sp[-1].f64);
+	return *--sp;
+}
+
+inline isize VM::capacity() {
+	return su - sb;
+}
+
+inline isize VM::usedSize() {
+	return sp - sb;
 }
 
 

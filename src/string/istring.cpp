@@ -100,7 +100,7 @@ string &string::operator=(const char *str) {
 	return *this;
 }
 
-void string::init(const char *str, isize len) {
+inline void string::init(const char *str, isize len) {
 	length = len;
 	data = (char *) memcpy(new char[length + 1], str, length);
 	data[length] = '\0';

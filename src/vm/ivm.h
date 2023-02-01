@@ -3,25 +3,24 @@
 #define IS_IVM_H
 
 #include "../container/istack.h"
-#include "../basic/instream.h"
 #include "../basic/ibasic.h"
 
-
+#define VMRegist(vm,reg) (vm).regist[Regist::reg]
+#define VMPRegist(vmp,reg) (vmp)->regist[Regist::reg]
 
 //寄存器的索引及所指
 namespace Regist {
 	enum Regist : uint8_t {
-		ip, bp, sp, up,
-		ax, bx, cx, dx,
-		r1, r2, r3, r4,
-		r5, r6, r7, r8
+		ib, ip, sb, sp,
+		su, ax, bx, cx,
+		dx, ex, fx, gx,
+		r1, r2, r3, r4
 	};
 }//enum class定义的不能当数使,有些不方便
 
 class VM {
 public:
-	Value regist[8]{};                 //寄存器
-	ByteStream instream;            //指令流
+	Value regist[16]{};             //寄存器
 	Array<Value> constList;         //常量表
 	Array<Value> gvarList;          //全局变量表
 
@@ -29,23 +28,25 @@ public:
 
 	void execute();                 //执行指令流
 
-	//下面是一些工具函数,用于读写指令
 
-	void write(Bytecode type);                               //写字节码
-	void write(int64_t operand, int8_t len);                 //写指定字节操作数
-	void write(Bytecode type, int64_t operand, int8_t len);  //写指定字节操作数指令
+	void resize(isize newCap);  //在bp,sp,up管理的栈中进行重置大小
+	void ensure(isize remain);  //在bp,sp,up管理的栈中确保剩余空间
 
-	void push(Value value); //在bp,sp,up管理的栈中进行压入操作
-	Value pop();            //在bp,sp,up管理的栈中进行弹出操作
+	void push(Value value);     //在bp,sp,up管理的栈中进行压入操作
+	Value pop();                //在bp,sp,up管理的栈中进行弹出操作
 
-	string dumpin();        //输出并步过ip对应指令
+	isize capacity();       //计算栈总容量
+	isize usedSize();       //计算栈已用容量
+
+	string dumpin();            //输出并步过ip对应指令
 
 private:
-	//这下面是一些内联函数,由于外部用不到所以设为private
+
+	//下面是一些工具函数,用于读取指令(与之相对的是Compiler里的写指令)
+	//由于是些内联函数且外部用不到所以设为private
 	Bytecode read();                //读一个字节码并步过
 	int64_t read(int8_t len);       //读指定长度的参数并步过
 
-	void writeVarg(uint64_t arg);   //变长字节码参数的写入
 	uint64_t readVarg();            //变长字节码参数的读取
 
 };

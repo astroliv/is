@@ -17,7 +17,7 @@ enum class TokenKind : uint8_t {
 struct Token {
 	refString extract;              //对应的文本
 	TokenKind kind{TokenKind::unk}; //类型
-	Value value{0};                 //对应的文本的值
+	Value value;                    //对应的文本的值
 	Position pos;                   //位置
 
 	string dump() const;            //输出信息

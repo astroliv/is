@@ -16,13 +16,20 @@ enum class VarModifier : uint8_t {
 
 //语言的值都将以Value的形式存于内存中,该类型占8Byte
 union Value {
-	int64_t i64;    //64bit int
+	int64_t i64{};  //64bit int
 	uint64_t ui64;  //64bit unsigned int
 	double f64;     //64bit float
 	string *sp;     //str ptr
 	refString *fsp; //refstr ptr
 	Value *vp;      //value ptr
 	byte *ip8;      //8bit int ptr
+
+	Value() = default;
+	explicit Value(double _f64);
+	explicit Value(const string &str);
+	explicit Value(const refString &str);
+	explicit Value(byte *_ip8);
+
 
 	bool operator==(const Value &other) const;
 };
@@ -36,20 +43,7 @@ union Fn {
 	byte *nat;          //可能是本地函数(native),即指令流
 };
 
-class Signature {
-public:
-
-};
-
-class FnSignature {
-public:
-
-};
-
-class FnInfo {
-public:
-
-};
+//下面是字节码相关的定义
 
 enum class Bytecode : byte {
 	#define loadEnum(n, effect, opNum, ...) n,
@@ -70,15 +64,6 @@ extern BytecodeInfo BytecodeInfoList[];
 inline BytecodeInfo bytecodeInfo(Bytecode by) {
 	return BytecodeInfoList[(isize) by];
 }
-
-////单个文件被编译后会变成一个模块,每个模块都是个数据单元,该数据类型仅起到存数据的作用(被废弃的数据结构)
-//class Module {
-//public:
-//	string file;                 //该模块对应的文件
-//	Array<Fn> fnList;            //模块内的所有函数
-//	Array<Value> constList;      //模块内的所有的字面量常量
-//	Array<Value> gvarList;       //模块内全局变量列表
-//};
 
 
 #endif //IS_IBASIC_H

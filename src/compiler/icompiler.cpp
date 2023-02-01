@@ -49,8 +49,13 @@ while (!(fn) && CTK != TokenKind::eof) {    \
 
 bool cmpFstrOfValue(const Value &a, const Value &b);//比较俩Value的fstr数据是否相等
 
-CompileUnit::CompileUnit(const char *file, VM *_vm) : vm(_vm) {
+CompileUnit::CompileUnit(const char *file, Compiler *_com) {
+	init(file, _com);
+}
+
+inline void CompileUnit::init(const char *file, Compiler *_com) {
 	lexer.init(file);
+	com = _com;
 }
 
 void CompileUnit::compile() {
@@ -90,6 +95,7 @@ inline void CompileUnit::skipCurStmt() {
 	errCurStmt = false;
 }
 
+
 bool CompileUnit::stmts() {
 	while (CTK != TokenKind::eof) {
 		if (!expr()) { errCurFile = true; }
@@ -100,20 +106,19 @@ bool CompileUnit::stmts() {
 		lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
 		assertCTK(TokenKind::end);
 	}
-	vm->write(Bytecode::end);
+	com->write(Bytecode::end);
 	return validMatch = true;
 }
-
 
 bool CompileUnit::expr() {
 	inertMatch(term());
 	while (true) {
 		if (matchCTK(TokenKind::add)) {
 			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			vm->write(Bytecode::add);
+			com->write(Bytecode::add);
 		} else if (matchCTK(TokenKind::sub)) {
 			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			vm->write(Bytecode::sub);
+			com->write(Bytecode::sub);
 		} else { break; }
 	}
 	return validMatch = true;
@@ -124,13 +129,13 @@ bool CompileUnit::term() {
 	while (true) {
 		if (matchCTK(TokenKind::mul)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			vm->write(Bytecode::mul);
+			com->write(Bytecode::mul);
 		} else if (matchCTK(TokenKind::div)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			vm->write(Bytecode::div);
+			com->write(Bytecode::div);
 		} else if (matchCTK(TokenKind::mod)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			vm->write(Bytecode::mod);
+			com->write(Bytecode::mod);
 		} else { break; }
 	}
 	return validMatch = true;
@@ -141,7 +146,7 @@ bool CompileUnit::factor() {
 		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
 	} else if (matchCTK(TokenKind::sub)) {
 		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-		vm->write(Bytecode::neg);
+		com->write(Bytecode::neg);
 	} else {
 		inertMatch(power());
 	}
@@ -153,7 +158,7 @@ bool CompileUnit::power() {
 	while (true) {
 		if (matchCTK(TokenKind::pow)) {
 			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
-			vm->write(Bytecode::pow);
+			com->write(Bytecode::pow);
 		} else { break; }
 	}
 	return validMatch = true;
@@ -161,9 +166,9 @@ bool CompileUnit::power() {
 
 bool CompileUnit::atom() {
 	if (matchCTK(TokenKind::num)) {
-		vm->write(Bytecode::ldc, vm->constList.reg(PT.value), -1);
+		com->write(Bytecode::ldc, com->vm->constList.reg(PT.value), -1);
 	} else if (matchCTK(TokenKind::str)) {
-		vm->write(Bytecode::ldc, vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
+		com->write(Bytecode::ldc, com->vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
 	} else if (matchCTK(TokenKind::lpare)) {
 		striveMatch(expr(), CTK != TokenKind::rpare, RepId::expectedExpr, tokenKindName(CTK));
 		assertCTK(TokenKind::rpare);
@@ -182,3 +187,53 @@ bool cmpFstrOfValue(const Value &a, const Value &b) {
 	return *a.fsp == *b.fsp;
 }
 
+Compiler::Compiler(VM *_vm) : vm(_vm) { cuList.resize(1); }
+
+void Compiler::write(Bytecode type) {
+	instream.append((byte) type);
+}
+
+void Compiler::write(int64_t operand, int8_t len) {
+	switch (len) {//直接穷举,没必要整循环
+		case -1:
+			writeVarg(operand);
+			return;
+		case 1:
+			instream.append(operand);
+			return;
+		case 2:
+			instream.append(operand);
+			instream.append(operand >> 8);
+			return;
+		case 4:
+			instream.append(operand);
+			instream.append(operand >> 8);
+			instream.append(operand >> 16);
+			instream.append(operand >> 24);
+			return;
+		case 8:
+			instream.append(operand);
+			instream.append(operand >> 8);
+			instream.append(operand >> 16);
+			instream.append(operand >> 24);
+			instream.append(operand >> 32);
+			instream.append(operand >> 40);
+			instream.append(operand >> 48);
+			instream.append(operand >> 56);
+			return;
+		default:
+			unreachableBranch();
+	}
+}
+
+void Compiler::write(Bytecode type, int64_t operand, int8_t len) {
+	write(type);
+	write(operand, len);
+}
+
+inline void Compiler::writeVarg(uint64_t arg) {
+	uint8_t i = 0;
+	do {
+		instream.append((arg >> 7) && (i < 8) ? arg & 0x7F | 0x80 : arg);
+	} while ((arg >>= 7) && (i++ < 8));
+}

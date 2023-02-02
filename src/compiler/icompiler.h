@@ -66,7 +66,7 @@ public:
 	void init(VM *_vm);                   //VM初始化
 	void init(const char *file, VM *_vm); //补全初始化
 
-	void mkCompileUnit(const char *file); //向cuList中加入新的成员,并令其执行编译
+	void mkCompileUnit(const char *file); //向cuList中加入新的成员,并对其进行必要的初始化
 
 	//指令与指令参数的写入
 

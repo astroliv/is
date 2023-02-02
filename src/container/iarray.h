@@ -25,9 +25,9 @@ public:
 	void ensure(isize remain);          //确保剩余空间足够达到指定大小,未达到则扩容
 
 	bool add(const T &value);           //添加成员,不会扩容
-	bool add();                         //添加空成员,不会扩容
+	T &add();                           //添加空成员,不会扩容
 	void append(const T &value);        //追加成员,自动扩容
-	void append();                      //追加空成员,自动扩容
+	T &append();                        //追加空成员,自动扩容
 	T &pop();//弹出最后一个成员
 
 	void set(isize idx, const T &value);//设置指定idx处的成员内容.需保证idx<usedSize,超出范围则返回false
@@ -55,7 +55,6 @@ public:
 
 	T &operator[](isize idx);           //获取指定位置成员.需保证idx<usedSize,否则报错
 };
-
 
 template<class T>
 Array<T>::Array(isize cap) {
@@ -103,11 +102,11 @@ bool Array<T>::add(const T &value) {
 }
 
 template<class T>
-bool Array<T>::add() {
+T &Array<T>::add() {
+	assert (capacity != usedSize, "There has not empty slot.");
 	T value{};
-	if (capacity == usedSize) { return false; }
-	data[usedSize++] = value;
-	return true;
+	data[usedSize] = value;
+	return data[usedSize++];
 }
 
 template<class T>
@@ -118,16 +117,17 @@ void Array<T>::append(const T &value) {
 }
 
 template<class T>
-void Array<T>::append() {
-	T value{};
+T &Array<T>::append() {
 	if (capacity == usedSize) { resize(ceilToPowerOf2(capacity + 1)); }
 	//不够就扩容,顺便对齐二的次幂,可以减少扩容次数
-	data[usedSize++] = value;
+	T value{};
+	data[usedSize] = value;
+	return data[usedSize++];
 }
 
 template<class T>
 T &Array<T>::pop() {
-	assert(usedSize != 0, "No Array members can read su.");
+	assert(usedSize != 0, "No Array members can read.");
 	return data[--usedSize];
 }
 

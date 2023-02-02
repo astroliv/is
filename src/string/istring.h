@@ -40,6 +40,9 @@ public:
 	void setMeta(stringMeta &meta);         //设置基元
 	void setMeta(char *str, isize len);     //设置基元
 
+	refString &operator=(stringMeta &str);  //赋值重载
+	refString &operator=(const char *str);  //赋值重载
+
 	void clearMeta();                       //清空基元
 };
 
@@ -54,7 +57,7 @@ public:
 
 	~string();                              //析构
 
-	string &operator=(const string &str);   //赋值重载
+	string &operator=(stringMeta &str);     //赋值重载
 	string &operator=(const char *str);     //赋值重载
 
 private:

@@ -64,6 +64,18 @@ void refString::clearMeta() {
 	data = nullptr;
 }
 
+refString &refString::operator=(stringMeta &str) {
+	data = (char *) str.getData();
+	length = str.getLength();
+	return *this;
+}
+
+refString &refString::operator=(const char *str) {
+	data = (char *) str;
+	for (; str[length] != '\0'; ++length) {}
+	return *this;
+}
+
 
 
 //拷贝式string
@@ -88,9 +100,9 @@ string::~string() {
 	clearMeta();
 }
 
-string &string::operator=(const string &str) {
+string &string::operator=(stringMeta &str) {
 	clearMeta();
-	init(str.data, str.length);
+	init(str.getData(), str.getLength());
 	return *this;
 }
 

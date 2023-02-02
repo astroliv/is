@@ -196,9 +196,7 @@ Compiler::Compiler(const char *file, VM *_vm) {
 }
 
 void Compiler::init(VM *_vm) {
-	CompileUnit cu;
-	cu.com = this;
-	cuList.append(cu);
+	cuList.append().com = this;
 	vm = _vm;
 }
 
@@ -207,11 +205,9 @@ void Compiler::init(const char *file, VM *_vm) {
 	vm = _vm;
 }
 
-void Compiler::mkCompileUnit(const char *file) {
-	CompileUnit cu(file, this);
-	cuList.append(cu);
+inline void Compiler::mkCompileUnit(const char *file) {
+	cuList.append().init(file, this);
 }
-
 
 void Compiler::write(Bytecode type) {
 	instream.append((byte) type);

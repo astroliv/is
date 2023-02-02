@@ -23,21 +23,8 @@ int main() {
 //	testString();
 //	testLexer();
 	testCompiler();
-//	testCompound();
+	testCompound();
 	return 0;
-}
-
-void testCompound() {
-	Stack<byte> baseStack(1);
-	Stack<byte> stack(1);
-	for (isize i = 0; i < 66; ++i) { baseStack.push(i); }
-	printf("bstCapacity:%u/%u\n", baseStack.usedSize(), baseStack.capacity());
-	stack.set(baseStack.sp, baseStack.up);
-	stack.push(6);
-	printf("stack.sb : %d baseStack.sp : %d\n", *stack.bp, *baseStack.sp);
-	for (isize i = 0; baseStack.usedSize() != 0; ++i) {
-		printf("%4u : %-4d\n", i, baseStack.pop());
-	}
 }
 
 void testCompiler() {
@@ -67,6 +54,26 @@ void testCompiler() {
 	VMPRegist(vm, ip).ip8 = VMPRegist(vm, ib).ip8;
 	vm->execute();
 	printf("\nCalc Result:%f\n", vm->pop().f64);
+}
+
+void testCompound() {
+	Stack<byte> baseStack(1);
+	Stack<byte> stack(1);
+	for (isize i = 0; i < 66; ++i) { baseStack.push(i); }
+	printf("bstCapacity:%u/%u\n", baseStack.usedSize(), baseStack.capacity());
+	stack.set(baseStack.sp, baseStack.up);
+	stack.push(6);
+	printf("stack.sb : %d baseStack.sp : %d\n", *stack.bp, *baseStack.sp);
+	for (isize i = 0; baseStack.usedSize() != 0; ++i) {
+		printf("%4u : %-4d\n", i, baseStack.pop());
+	}
+	enum class TestModifier : uint8_t { a, b, c, d, e, f, g, h };
+	Modifier<TestModifier, uint8_t> modifier;
+	modifier.set(TestModifier::a, true);
+	modifier.set(TestModifier::c, true);
+	modifier.set(TestModifier::g, true);
+	modifier.set(TestModifier::h, true);
+	printf("%d,%d\n", modifier.data, 0b10100011);
 }
 
 void testLexer() {

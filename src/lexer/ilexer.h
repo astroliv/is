@@ -4,7 +4,7 @@
 
 class Lexer {
 public:
-	string fileName;             //该Lexer解析的文件
+	refString fileName;          //该Lexer解析的文件
 	const char *code{nullptr};   //源码指针
 	char *nextCharPtr{nullptr};  //下一个字符的指针
 	char curChar{0};             //当前字符

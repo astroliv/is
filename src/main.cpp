@@ -41,29 +41,32 @@ void testCompound() {
 }
 
 void testCompiler() {
-	delete[] (int *) nullptr;
+	delete (int *) nullptr;
 	auto vm = new VM();
-	Compiler com(vm);
+	Compiler com(R"(E:\projects\is\script\test.is)", vm);
 	CompileUnit &cu = com.cuList[0];
-	cu.init(R"(E:\projects\is\script\test.is)", &com);
+
 	isize t = GetTickCount();
 	cu.compile();
 	t = GetTickCount() - t;
 	printf("Compile Time Consuming: %ums\n", t);
+
 	printf("Bytes:");
 	for (isize i = 0; i < com.instream.getUsedSize(); ++i) { printf(" %d", com.instream[i]); }
+
 	printf("\nInstructions:\n");
-	VMPRegist(vm, ib).ip8 = VMPRegist(vm, ip).ip8 = com.instream.getPtr(0);
+	vm->initRegist(com.instream.setout());
 	while (*VMPRegist(vm, ip).ip8 != (byte) Bytecode::end
 	       && *VMPRegist(vm, ip).ip8 != (byte) Bytecode::unk) {
 		printf("%s\n", ~vm->dumpin());
 	}
+
 	printf("Const List:\n");
 	for (isize i = 0; i < vm->constList.getUsedSize(); ++i) { printf("%-6d: %f\n", i, vm->constList[i].f64); }
-	VMPRegist(vm, ib).ip8 = VMPRegist(vm, ip).ip8 = com.instream.getPtr(0);
+
+	VMPRegist(vm, ip).ip8 = VMPRegist(vm, ib).ip8;
 	vm->execute();
 	printf("\nCalc Result:%f\n", vm->pop().f64);
-	printf("2^64-100=%f\n", pow(2., 64.) - 100.);
 }
 
 void testLexer() {

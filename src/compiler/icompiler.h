@@ -50,7 +50,6 @@ private:
 	bool power();
 	bool atom();
 
-
 };
 
 //用于整合调度多文件编译
@@ -60,8 +59,14 @@ public:
 	ByteStream instream;        //指令流集合,该项目的所有函数指令都在这
 	VM *vm{};                   //编译器服务的虚拟机
 
-	Compiler() = default;       //默认构造
-	explicit Compiler(VM *_vm); //补全构造
+	Compiler() = default;                 //默认构造
+	explicit Compiler(VM *_vm);           //VM构造
+	Compiler(const char *file, VM *_vm);  //补全构造
+
+	void init(VM *_vm);                   //VM初始化
+	void init(const char *file, VM *_vm); //补全初始化
+
+	void mkCompileUnit(const char *file); //向cuList中加入新的成员,并令其执行编译
 
 	//指令与指令参数的写入
 

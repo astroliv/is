@@ -187,7 +187,31 @@ bool cmpFstrOfValue(const Value &a, const Value &b) {
 	return *a.fsp == *b.fsp;
 }
 
-Compiler::Compiler(VM *_vm) : vm(_vm) { cuList.resize(1); }
+Compiler::Compiler(VM *_vm) {
+	init(_vm);
+}
+
+Compiler::Compiler(const char *file, VM *_vm) {
+	init(file, _vm);
+}
+
+void Compiler::init(VM *_vm) {
+	CompileUnit cu;
+	cu.com = this;
+	cuList.append(cu);
+	vm = _vm;
+}
+
+void Compiler::init(const char *file, VM *_vm) {
+	mkCompileUnit(file);
+	vm = _vm;
+}
+
+void Compiler::mkCompileUnit(const char *file) {
+	CompileUnit cu(file, this);
+	cuList.append(cu);
+}
+
 
 void Compiler::write(Bytecode type) {
 	instream.append((byte) type);
@@ -237,3 +261,5 @@ inline void Compiler::writeVarg(uint64_t arg) {
 		instream.append((arg >> 7) && (i < 8) ? arg & 0x7F | 0x80 : arg);
 	} while ((arg >>= 7) && (i++ < 8));
 }
+
+

@@ -23,8 +23,11 @@ public:
 
 	VM() = default;                 //默认构造(祖传/笑)
 
-	void execute();                 //执行指令流
+	void initRegist(byte *_ib);     //初始化寄存器
 
+//	void call(isize idx);
+
+	void execute();                 //执行指令流
 
 	void resize(isize newCap);  //在bp,sp,up管理的栈中进行重置大小
 	void ensure(isize remain);  //在bp,sp,up管理的栈中确保剩余空间

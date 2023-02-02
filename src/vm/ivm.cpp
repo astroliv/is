@@ -20,6 +20,11 @@
 #define r3 (regist[Regist::r3])     //r3寄存器
 #define r4 (regist[Regist::r4])     //r4寄存器
 
+void VM::initRegist(byte *_ib) {
+	ip = ib = _ib;
+	su = sp = sb = nullptr;
+}
+
 void VM::execute() {
 //	Value rigValue, lefValue;
 	while (true) {

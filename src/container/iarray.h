@@ -71,8 +71,7 @@ void Array<T>::resize(isize newCap) { //这是variableArray的灵魂
 	capacity = newCap;//先设置数量数据
 	if (usedSize > newCap) { usedSize = newCap; }//将usedSize向下合理化
 	if (newCap == 0) {
-		if (data == nullptr) { return; }//无需清空的情况
-		delete data;
+		delete[] data;
 		data = nullptr;
 		return;
 	}//此时为清空

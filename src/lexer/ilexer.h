@@ -41,7 +41,7 @@ private:
 	void parseString();             //解析字符串
 	void parseId(TokenKind kind);   //解析标识符
 
-	TokenKind idOrKeyword(refString &str); //判断是否为关键词
+	static TokenKind idOrKeyword(refString &str); //判断是否为关键词
 
 	void getNextChar();               //推进到下一个字符
 	bool matchNextChar(char value);   //匹配下一个字符,成功返回true并推进一次字符

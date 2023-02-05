@@ -1,25 +1,35 @@
 #include "itoken.h"
 #include <cstdio>
+#include <cstring>
 
-const char *TokenKindNameList[] = {
-#define loadEnum(n) #n,
+TokenKindInfo TokenKindInfoList[] = {
+#define loadEnum(n, symbol) {#n, symbol},
 #include "tokenKind.enum"
 #undef loadEnum
 };
+
+TokenKind isKeyword(stringMeta extract) {
+	for (isize i = 0; i < (isize) TokenKind::unk; ++i) {
+		if (!strncmp(tokenKindInfo((TokenKind) i).symbol, extract.getData(), extract.getLength())) {
+			return (TokenKind) i;
+		}
+	}
+	return TokenKind::unk;//不是关键词诶qwq
+}
 
 string Token::dump() const {
 	char buffer[512] = {0};
 	if (kind == TokenKind::num) {
 		sprintf(buffer, "kind:%-10s extract:%-8s value:%-18f pos:[%u,%u]",
-		        tokenKindName(kind), ~string(extract),
+		        tokenKindInfo(kind).strName, ~string(extract),
 		        value.f64, pos.line, pos.column);
 	} else if (kind == TokenKind::str) {
 		sprintf(buffer, "kind:%-10s extract:%-8s value:%-18s pos:[%u,%u]",
-		        tokenKindName(kind), ~string(extract),
+		        tokenKindInfo(kind).strName, ~string(extract),
 		        ~string(*value.fsp), pos.line, pos.column);
 	} else {
 		sprintf(buffer, "kind:%-10s extract:%-8s value:%-18s pos:[%u,%u]",
-		        tokenKindName(kind), ~string(extract),
+		        tokenKindInfo(kind).strName, ~string(extract),
 		        "null", pos.line, pos.column);
 	}
 	return string(buffer);

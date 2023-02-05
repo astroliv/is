@@ -1,33 +1,41 @@
-//loadEnum(n)
-//n  为枚举名
+//loadEnum(n, symbol)
+//n         为枚举名
+//symbol    该TokenKind对应的文本
 
-loadEnum(unk)
+loadEnum(let,"let")
+loadEnum(byte_,"byte")
+loadEnum(short_,"short")
+loadEnum(int_,"int")
+loadEnum(long_,"long")
+loadEnum(string_,"string")
 
-loadEnum(id)
-loadEnum(num)
-loadEnum(str)
+loadEnum(unk,"")
 
-loadEnum(add)
-loadEnum(sub)
-loadEnum(mul)
-loadEnum(div)
-loadEnum(pow)
-loadEnum(mod)
+loadEnum(id,"")
+loadEnum(num,"")
+loadEnum(str,"")
+
+loadEnum(add,"+")
+loadEnum(sub,"-")
+loadEnum(mul,"*")
+loadEnum(div,"/")
+loadEnum(pow,"**")
+loadEnum(mod,"%")
 
 //分号
-loadEnum(end)
+loadEnum(end,";")
 
 //小括号
-loadEnum(lpare)
-loadEnum(rpare)
+loadEnum(lpare,"(")
+loadEnum(rpare,")")
 
 //中括号
-loadEnum(lbracket)
-loadEnum(rbracket)
+loadEnum(lbracket,"[")
+loadEnum(rbracket,"]")
 
 //大括号
-loadEnum(lbrace)
-loadEnum(rbrace)
+loadEnum(lbrace,"{")
+loadEnum(rbrace,"}")
 
 //终结符
-loadEnum(eof)
+loadEnum(eof,"")

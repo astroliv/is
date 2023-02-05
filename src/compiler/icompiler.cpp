@@ -83,7 +83,8 @@ inline bool CompileUnit::matchCTK(TokenKind kind) {
 inline void CompileUnit::assertCTK(TokenKind kind) {
 	if (CTK != kind) {
 		reportMsg(RepId::assertTokenKindFailure, this,
-		          tokenKindName(kind), tokenKindName(CTK));
+		          tokenKindInfo(kind).strName,
+		          tokenKindInfo(CTK).strName);
 		return;//由于当前token不是目前预期的,那么就认为其为下一个匹配所需的,不应被Pass掉
 	}
 	advance();//Pass curToken
@@ -114,10 +115,10 @@ bool CompileUnit::expr() {
 	inertMatch(term());
 	while (true) {
 		if (matchCTK(TokenKind::add)) {
-			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 			com->write(Bytecode::add);
 		} else if (matchCTK(TokenKind::sub)) {
-			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 			com->write(Bytecode::sub);
 		} else { break; }
 	}
@@ -128,13 +129,13 @@ bool CompileUnit::term() {
 	inertMatch(factor());
 	while (true) {
 		if (matchCTK(TokenKind::mul)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 			com->write(Bytecode::mul);
 		} else if (matchCTK(TokenKind::div)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 			com->write(Bytecode::div);
 		} else if (matchCTK(TokenKind::mod)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 			com->write(Bytecode::mod);
 		} else { break; }
 	}
@@ -143,9 +144,9 @@ bool CompileUnit::term() {
 
 bool CompileUnit::factor() {
 	if (matchCTK(TokenKind::add)) {
-		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 	} else if (matchCTK(TokenKind::sub)) {
-		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 		com->write(Bytecode::neg);
 	} else {
 		inertMatch(power());
@@ -157,7 +158,7 @@ bool CompileUnit::power() {
 	inertMatch(atom());
 	while (true) {
 		if (matchCTK(TokenKind::pow)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindName(CTK));
+			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 			com->write(Bytecode::pow);
 		} else { break; }
 	}
@@ -170,7 +171,7 @@ bool CompileUnit::atom() {
 	} else if (matchCTK(TokenKind::str)) {
 		com->write(Bytecode::ldc, com->vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
 	} else if (matchCTK(TokenKind::lpare)) {
-		striveMatch(expr(), CTK != TokenKind::rpare, RepId::expectedExpr, tokenKindName(CTK));
+		striveMatch(expr(), CTK != TokenKind::rpare, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 		assertCTK(TokenKind::rpare);
 	} else {
 		return validMatch = false;

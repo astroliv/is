@@ -194,11 +194,9 @@ void Lexer::parseId(TokenKind kind) {
 }
 
 TokenKind Lexer::idOrKeyword(refString &str) {
-//TODO idOrKeyword
-
-//	TokenKind kind = isKeyword(str);
-//	if (kind == TokenKind::unk) { kind = TokenKind::id; }
-	return TokenKind::id;
+	TokenKind kind = isKeyword(str);
+	if (kind == TokenKind::unk) { kind = TokenKind::id; }
+	return kind;
 }
 
 void Lexer::getNextChar() {

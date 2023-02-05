@@ -9,7 +9,7 @@ struct Position {
 };
 
 enum class TokenKind : uint8_t {
-	#define loadEnum(n) n,
+	#define loadEnum(n, symbol) n,
 	#include "tokenKind.enum"
 	#undef loadEnum
 };
@@ -23,10 +23,17 @@ struct Token {
 	string dump() const;            //输出信息
 };
 
-extern const char *TokenKindNameList[];
+struct TokenKindInfo {
+	const char *strName{};
+	const char *symbol{};
+};
 
-inline const char *tokenKindName(TokenKind tk) {
-	return TokenKindNameList[(isize) tk];
+extern TokenKindInfo TokenKindInfoList[];
+
+inline TokenKindInfo tokenKindInfo(TokenKind tk) {
+	return TokenKindInfoList[(isize) tk];
 }
+
+TokenKind isKeyword(stringMeta extract);
 
 #endif //IS_ITOKEN_H

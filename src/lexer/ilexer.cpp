@@ -44,6 +44,9 @@ void Lexer::advance() {
 
 	while (curChar != '\0') {       //循环判断
 		switch (curChar) {
+			case '=':
+				ANT.kind = TokenKind::assign;
+				break;
 			case '+':
 				ANT.kind = TokenKind::add;
 				break;

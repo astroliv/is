@@ -85,6 +85,7 @@ inline void CompileUnit::assertCTK(TokenKind kind) {
 		reportMsg(RepId::assertTokenKindFailure, this,
 		          tokenKindInfo(kind).strName,
 		          tokenKindInfo(CTK).strName);
+		errCurFile = errCurStmt = true;
 		return;//由于当前token不是目前预期的,那么就认为其为下一个匹配所需的,不应被Pass掉
 	}
 	advance();//Pass curToken
@@ -100,12 +101,12 @@ inline void CompileUnit::skipCurStmt() {
 bool CompileUnit::stmts() {
 	while (CTK != TokenKind::eof) {
 		if (!expr()) { errCurFile = true; }
+		assertCTK(TokenKind::end);
 		skipCurStmt();
 		if (lexer.unLpare || lexer.unLbracket || lexer.unLbrace) {
 			reportMsg(RepId::unmatchedBracketsStmt, this);
+			lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
 		}//这只是一个提示,因为实际上assertTokenKindFailure也会对该情况进行报错
-		lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
-		assertCTK(TokenKind::end);
 	}
 	com->write(Bytecode::end);
 	return validMatch = true;

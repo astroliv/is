@@ -1,6 +1,7 @@
 #ifndef IS_ILEXER_H
 #define IS_ILEXER_H
 #include "itoken.h"
+#include "../container/iarray.h"
 
 class Lexer {
 public:
@@ -21,6 +22,9 @@ public:
 	Token secToken;              //下二个token
 	Token thiToken;              //下三个token
 
+	Array<Token> aheadTokens{8}; //超前扫描表
+	isize aheadReadIdx{0};       //超前扫描读取索引
+
 	Lexer() = default;                   //无参构造
 	explicit Lexer(const char *file);    //文件构造
 
@@ -29,6 +33,9 @@ public:
 	void init(const char *file);         //初始化
 
 	void advance(); //推进Token,即获取下一个Token
+
+	void startLookahead(); //开始超前扫描
+	void endLookahead();   //停止超前扫描,回归到开始时的状态
 
 private:
 	void init();            //初始化

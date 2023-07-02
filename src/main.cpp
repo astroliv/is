@@ -16,15 +16,22 @@ void testString();
 void testCompound();
 void testLexer();
 void testCompiler();
+void testStatus();
 
 int main() {
 //	setbuf(stdout, nullptr);
 //	testArray();
 //	testString();
 //	testLexer();
+//	testStatus();
 	testCompiler();
 //	testCompound();
 	return 0;
+}
+
+
+void testStatus() {
+
 }
 
 void testCompiler() {
@@ -43,8 +50,8 @@ void testCompiler() {
 
 	printf("\nInstructions:\n");
 	vm->initRegist(com.instream.setout());
-	while (*VMPRegist(vm, ip).ip8 != (byte) Bytecode::end
-	       && *VMPRegist(vm, ip).ip8 != (byte) Bytecode::unk) {
+	while (*VMPRegist(vm, ip).ip8 != (byte) Instruction::end
+	       && *VMPRegist(vm, ip).ip8 != (byte) Instruction::unk) {
 		printf("%s\n", ~vm->dumpin());
 	}
 
@@ -78,6 +85,17 @@ void testCompound() {
 
 void testLexer() {
 	Lexer lex(R"(E:\projects\is\script\test.is)");
+	lex.startLookahead();
+	for (isize i = 0; i < 8; ++i) {
+		printf("%s\n", ~lex.curToken.dump());
+		lex.advance();
+	}
+//	while (lex.preToken.kind != TokenKind::eof) {
+//
+//	}
+	lex.endLookahead();
+	printf("Lookahead end up here.\n");
+
 	while (lex.preToken.kind != TokenKind::eof) {
 		printf("%s\n", ~lex.curToken.dump());
 		lex.advance();

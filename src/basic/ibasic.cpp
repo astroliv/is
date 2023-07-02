@@ -13,8 +13,8 @@ Value::Value(const refString &str) : fsp(new refString(str)) {}
 Value::Value(byte *_ip8) : ip8(_ip8) {}
 
 
-BytecodeInfo BytecodeInfoList[] = {
+InstructionInfo InstructionInfoList[] = {
 		#define loadEnum(n, effect, opNum, ...) {#n, effect, opNum, {__VA_ARGS__}},
-		#include "bytecode.enum"
+		#include "instruction.enum"
 		#undef loadEnum
 };

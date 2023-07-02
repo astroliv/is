@@ -38,6 +38,14 @@ void Lexer::advance() {
 	nexToken = secToken;
 	secToken = ANT;
 
+	if (aheadTokens.getUsedSize() && aheadReadIdx) { //已存,在读
+		ANT = aheadTokens[aheadReadIdx++];
+		if (aheadTokens.getUsedSize() == aheadReadIdx) {
+			aheadTokens.zeroUsedSize();
+		}
+		return;
+	}
+
 //	skipBlanks();                   //跳过空白符,此句已被下一句包含
 	initANTData();                  //设置ANT初始状态
 	ANT.kind = TokenKind::eof;      //设置类型初始值
@@ -110,10 +118,18 @@ void Lexer::advance() {
 					initANTData();//重走一遍初始化流程
 					continue;
 				}
+				if (aheadTokens.getUsedSize()) { //已存,未读
+					aheadTokens.append(ANT);
+				}
 				return;
 		}
 		ANT.extract.length = nextCharPtr - ~ANT.extract;
 		getNextChar();
+
+		if (aheadTokens.getUsedSize()) { //已存,未读
+			aheadTokens.append(ANT);
+		}
+
 		return;
 	}
 }
@@ -220,4 +236,24 @@ bool Lexer::matchNextChar(char value) {
 		return true;
 	}
 	return false;
+}
+
+void Lexer::startLookahead() {
+	aheadTokens.setUsedSize(5);
+	aheadTokens[0] = preToken;
+	aheadTokens[1] = curToken;
+	aheadTokens[2] = nexToken;
+	aheadTokens[3] = secToken;
+	aheadTokens[4] = thiToken;
+	aheadReadIdx = 0;
+}
+
+void Lexer::endLookahead() {
+	preToken = aheadTokens[0];
+	curToken = aheadTokens[1];
+	nexToken = aheadTokens[2];
+	secToken = aheadTokens[3];
+	thiToken = aheadTokens[4];
+	aheadReadIdx = 5;
+	assert(aheadTokens.getUsedSize() != 5, "Can we code?");
 }

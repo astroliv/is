@@ -9,6 +9,12 @@
 
 class Compiler;
 
+enum class Status : int8_t {
+	success = 1, //匹配成功
+	failure = 0, //匹配失败
+	error = -1   //匹配出错(已报错)
+};
+
 class CompileUnit {
 public:
 	Lexer lexer;            //该编译单元所使用的词法分析器
@@ -17,7 +23,7 @@ public:
 	//下面几个状态标记
 	isize scopeDepth{0};    //当前位置的作用域深度
 
-	bool validMatch{false}; //记录当前的惰性匹配是否有效,用于判定报错的标记
+	bool doGenerate{true};  //标记是否进行指令生成操作
 	bool errCurFile{false}; //标记当前文件是否有错误,若有则不会调用VM执行
 	bool errCurStmt{false}; //标记当前语句是否有错误,有则会进行跳过
 
@@ -41,14 +47,14 @@ private:
 	//下面是编译用的递归调用链
 
 	//语句
-	bool stmts();
+	Status stmts();
 
 	//算数表达式
-	bool expr();
-	bool term();
-	bool factor();
-	bool power();
-	bool atom();
+	Status expr();
+	Status term();
+	Status factor();
+	Status power();
+	Status atom();
 
 };
 
@@ -70,9 +76,9 @@ public:
 
 	//指令与指令参数的写入
 
-	void write(Bytecode type);                               //写字节码
-	void write(int64_t operand, int8_t len);                 //写指定字节操作数
-	void write(Bytecode type, int64_t operand, int8_t len);  //写指定字节操作数指令
+	void write(Instruction type);                               //写字节码
+	void write(int64_t operand, int8_t len);                    //写指定字节操作数
+	void write(Instruction type, int64_t operand, int8_t len);  //写指定字节操作数指令
 
 	void writeVarg(uint64_t arg);   //变长字节码参数的写入
 };

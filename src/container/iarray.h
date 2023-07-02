@@ -49,12 +49,26 @@ public:
 	isize getCapacity();                //返回数组最大容量
 	isize getUsedSize();                //返回数组已使用容量
 
+	void zeroUsedSize();                //设置数组已使用容量为0
+	void setUsedSize(isize size);       //设置数组已使用容量
+
 	void setout(Array<T> &ary);         //将当前数组数据迁出到ary
 	isize setout(T *&ptr);              //将当前数组数据迁出
 	T *setout();                        //将当前数组数据迁出
 
 	T &operator[](isize idx);           //获取指定位置成员.需保证idx<usedSize,否则报错
 };
+
+template<class T>
+void Array<T>::setUsedSize(isize size) {
+	assert(size <= capacity, "The size out of range.");
+	usedSize = size;
+}
+
+template<class T>
+void Array<T>::zeroUsedSize() {
+	usedSize = 0;
+}
 
 template<class T>
 Array<T>::Array(isize cap) {

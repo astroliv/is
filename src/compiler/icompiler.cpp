@@ -25,27 +25,15 @@
 
 //惰性匹配,匹配失败就摆烂返回false(其实就是CaseFalseReturnFalse)
 #define inertMatch(fn) \
-if(!(fn)) { return validMatch = false; }
+if((fn())!=Status::success){return Status::failure;}
 
 //强制匹配,匹配失败就开摆,报错返回一气呵成
-//(为了防止回到Caller的时候因返回false重复报错,搞了个errCurStmt来判定)
 #define forceMatch(fn, id, ...)             \
-if (!(fn)) {                                \
-    if (!errCurStmt) {                      \
-    reportMsg(id, this,##__VA_ARGS__);      \
-    }                                       \
-    return validMatch = false;              \
+switch (fn()) {\
+    case Status::failure:reportMsg(id,this,##__VA_ARGS__);\
+    case Status::error:return Status::error;\
+    case Status::success:break;\
 }
-
-//竭力匹配,竭力匹配完当前语句,即使有失败也不放弃,报个错接着匹配,若sign为false则停止
-#define striveMatch(fn, sign, id, ...)      \
-while (!(fn) && CTK != TokenKind::eof) {    \
-    errCurFile = errCurStmt = true;         \
-    reportMsg(id, this,##__VA_ARGS__);      \
-    if (sign) { advance(); }                \
-    else { break; }                         \
-}
-
 
 bool cmpFstrOfValue(const Value &a, const Value &b);//比较俩Value的fstr数据是否相等
 
@@ -98,9 +86,9 @@ inline void CompileUnit::skipCurStmt() {
 }
 
 
-bool CompileUnit::stmts() {
+Status CompileUnit::stmts() {
 	while (CTK != TokenKind::eof) {
-		if (!expr()) { errCurFile = true; }
+		if (expr() != Status::success) { errCurFile = true; }
 		assertCTK(TokenKind::end);
 		skipCurStmt();
 		if (lexer.unLpare || lexer.unLbracket || lexer.unLbrace) {
@@ -108,76 +96,77 @@ bool CompileUnit::stmts() {
 			lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
 		}//这只是一个提示,因为实际上assertTokenKindFailure也会对该情况进行报错
 	}
-	com->write(Bytecode::end);
-	return validMatch = true;
+	com->write(Instruction::end);
+	return Status::success;
+
 }
 
-bool CompileUnit::expr() {
-	inertMatch(term());
+Status CompileUnit::expr() {
+	inertMatch(term);
 	while (true) {
 		if (matchCTK(TokenKind::add)) {
-			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Bytecode::add);
+			forceMatch(term, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+			com->write(Instruction::add);
 		} else if (matchCTK(TokenKind::sub)) {
-			striveMatch(term(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Bytecode::sub);
+			forceMatch(term, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+			com->write(Instruction::sub);
 		} else { break; }
 	}
-	return validMatch = true;
+	return Status::success;
 }
 
-bool CompileUnit::term() {
-	inertMatch(factor());
+Status CompileUnit::term() {
+	inertMatch(factor);
 	while (true) {
 		if (matchCTK(TokenKind::mul)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Bytecode::mul);
+			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+			com->write(Instruction::mul);
 		} else if (matchCTK(TokenKind::div)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Bytecode::div);
+			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+			com->write(Instruction::div);
 		} else if (matchCTK(TokenKind::mod)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Bytecode::mod);
+			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+			com->write(Instruction::mod);
 		} else { break; }
 	}
-	return validMatch = true;
+	return Status::success;
 }
 
-bool CompileUnit::factor() {
+Status CompileUnit::factor() {
 	if (matchCTK(TokenKind::add)) {
-		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+		forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 	} else if (matchCTK(TokenKind::sub)) {
-		striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-		com->write(Bytecode::neg);
+		forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+		com->write(Instruction::neg);
 	} else {
-		inertMatch(power());
+		inertMatch(power);
 	}
-	return validMatch = true;
+	return Status::success;
 }
 
-bool CompileUnit::power() {
-	inertMatch(atom());
+Status CompileUnit::power() {
+	inertMatch(atom);
 	while (true) {
 		if (matchCTK(TokenKind::pow)) {
-			striveMatch(factor(), CTKNEER, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Bytecode::pow);
+			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+			com->write(Instruction::pow);
 		} else { break; }
 	}
-	return validMatch = true;
+	return Status::success;
 }
 
-bool CompileUnit::atom() {
+Status CompileUnit::atom() {
 	if (matchCTK(TokenKind::num)) {
-		com->write(Bytecode::ldc, com->vm->constList.reg(PT.value), -1);
+		com->write(Instruction::ldc, com->vm->constList.reg(PT.value), -1);
 	} else if (matchCTK(TokenKind::str)) {
-		com->write(Bytecode::ldc, com->vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
+		com->write(Instruction::ldc, com->vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
 	} else if (matchCTK(TokenKind::lpare)) {
-		striveMatch(expr(), CTK != TokenKind::rpare, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+		forceMatch(expr, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 		assertCTK(TokenKind::rpare);
 	} else {
-		return validMatch = false;
+		return Status::failure;
 	}
-	return validMatch = true;
+	return Status::success;
 }
 
 
@@ -211,7 +200,7 @@ inline void Compiler::mkCompileUnit(const char *file) {
 	cuList.append().init(file, this);
 }
 
-void Compiler::write(Bytecode type) {
+void Compiler::write(Instruction type) {
 	instream.append((byte) type);
 }
 
@@ -248,7 +237,7 @@ void Compiler::write(int64_t operand, int8_t len) {
 	}
 }
 
-void Compiler::write(Bytecode type, int64_t operand, int8_t len) {
+void Compiler::write(Instruction type, int64_t operand, int8_t len) {
 	write(type);
 	write(operand, len);
 }

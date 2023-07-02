@@ -44,7 +44,7 @@ private:
 
 	//下面是一些工具函数,用于读取指令(与之相对的是Compiler里的写指令)
 	//由于是些内联函数且外部用不到所以设为private
-	Bytecode read();                //读一个字节码并步过
+	Instruction read();                //读一个字节码并步过
 	int64_t read(int8_t len);       //读指定长度的参数并步过
 
 	uint64_t readVarg();            //变长字节码参数的读取

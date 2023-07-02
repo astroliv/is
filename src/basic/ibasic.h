@@ -45,13 +45,13 @@ union Fn {
 
 //下面是字节码相关的定义
 
-enum class Bytecode : byte {
+enum class Instruction : byte {
 	#define loadEnum(n, effect, opNum, ...) n,
-	#include "bytecode.enum"
+	#include "instruction.enum"
 	#undef loadEnum
 };
 
-struct BytecodeInfo {
+struct InstructionInfo {
 	const char *strName{nullptr};       //该字节码名称的字符串形式
 	int8_t effect{0};                   //对栈空间的影响量
 	int8_t opNum{0};                    //参数个数
@@ -59,10 +59,10 @@ struct BytecodeInfo {
 	//由于我设计的字节码的参数最多才只有两个,于是就给fopLen数组宽度设为2
 };
 
-extern BytecodeInfo BytecodeInfoList[];
+extern InstructionInfo InstructionInfoList[];
 
-inline BytecodeInfo bytecodeInfo(Bytecode by) {
-	return BytecodeInfoList[(isize) by];
+inline InstructionInfo instructionInfo(Instruction by) {
+	return InstructionInfoList[(isize) by];
 }
 
 

@@ -29,28 +29,28 @@ void VM::execute() {
 //	Value rigValue, lefValue;
 	while (true) {
 		switch (read()) {
-			case Bytecode::neg:
+			case Instruction::neg:
 				sp[-1].f64 = -sp[-1].f64;
 				break;
-			case Bytecode::add:
+			case Instruction::add:
 				sp[-2].f64 = sp[-2].f64 + sp[-1].f64, --sp;
 				break;
-			case Bytecode::sub:
+			case Instruction::sub:
 				sp[-2].f64 = sp[-2].f64 - sp[-1].f64, --sp;
 				break;
-			case Bytecode::mul:
+			case Instruction::mul:
 				sp[-2].f64 = sp[-2].f64 * sp[-1].f64, --sp;
 				break;
-			case Bytecode::div:
+			case Instruction::div:
 				sp[-2].f64 = sp[-2].f64 / sp[-1].f64, --sp;
 				break;
-			case Bytecode::pow:
+			case Instruction::pow:
 				sp[-2].f64 = pow(sp[-2].f64, sp[-1].f64), --sp;
 				break;
-			case Bytecode::ldc:
-				push(constList[read(bytecodeInfo(Bytecode::ldc).fopLen[0])]);
+			case Instruction::ldc:
+				push(constList[read(instructionInfo(Instruction::ldc).fopLen[0])]);
 				break;
-			case Bytecode::end:
+			case Instruction::end:
 				return;
 			default:
 				unreachableBranch();
@@ -58,8 +58,8 @@ void VM::execute() {
 	}
 }
 
-inline Bytecode VM::read() {
-	return (Bytecode) *ip++;
+inline Instruction VM::read() {
+	return (Instruction) *ip++;
 }
 
 inline int64_t VM::read(int8_t len) {
@@ -94,26 +94,26 @@ string VM::dumpin() {
 	byte *dip = ip;
 	uint64_t args[2] = {0};
 	char buffer[64] = {0};
-	Bytecode by = read();
+	Instruction by = read();
 	const char *fmt = nullptr;
-	switch (bytecodeInfo(by).opNum) {
+	switch (instructionInfo(by).opNum) {
 		case 0://无参字节码
 			fmt = "%-6llu: %s";
 			break;
 		case 1://单参字节码
 			fmt = "%-6llu: %s %llu";
-			args[0] = read(bytecodeInfo(by).fopLen[0]);
+			args[0] = read(instructionInfo(by).fopLen[0]);
 			break;
 		case 2://双参字节码
 			fmt = "%-6llu: %s %llu,%llu";
-			args[0] = read(bytecodeInfo(by).fopLen[0]);
-			args[1] = read(bytecodeInfo(by).fopLen[1]);
+			args[0] = read(instructionInfo(by).fopLen[0]);
+			args[1] = read(instructionInfo(by).fopLen[1]);
 			break;
 		default:
 			unreachableBranch();
 			break;
 	}
-	sprintf(buffer, fmt, dip - ib, bytecodeInfo(by).strName, args[0], args[1]);
+	sprintf(buffer, fmt, dip - ib, instructionInfo(by).strName, args[0], args[1]);
 	return string(buffer);
 }
 

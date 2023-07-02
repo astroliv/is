@@ -33,7 +33,7 @@ void assert(bool logicexpr, const char *msg, ...);
         {\
             char buffer[DEBUG_ASSERT_BUFFER_SIZE] = {0};\
             sprintf(buffer,msg,##__VA_ARGS__);\
-            printf("\033[0m\033[1;31m[Code Error]Assert failed!\nIn file: %s:%d function: %s(...): %s\033[0m\n",\
+            printf("\033[0m\033[1;31mcode error: <assert failed> in file:\n%s:%d function: %s(...): %s\033[0m\n",\
                     __FILE__, __LINE__, __FUNCTION__, buffer);                                                  \
         if(DEBUG_ASSERT_CLOSE){exit(EXIT_FAILURE);}\
         }\

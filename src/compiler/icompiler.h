@@ -25,7 +25,6 @@ public:
 
 	bool doGenerate{true};  //标记是否进行指令生成操作
 	bool errCurFile{false}; //标记当前文件是否有错误,若有则不会调用VM执行
-	bool errCurStmt{false}; //标记当前语句是否有错误,有则会进行跳过
 
 	CompileUnit() = default;                                 //无参构造
 	explicit CompileUnit(const char *file, Compiler *_com);  //补全构造
@@ -39,9 +38,14 @@ private:
 
 	Token advance(); //返回当前Token并推进词法分析
 
+	TokenKind selectMatchCTK(TokenKind tk1, TokenKind tk2);
+	TokenKind selectMatchCTK(TokenKind tk1, TokenKind tk2, TokenKind tk3);
+
+	static Instruction relatedInstruction(TokenKind tk); //获取指定TokenKind所对应的指令
+
 	bool matchCTK(TokenKind kind);    //匹配当前Token的类型,匹配则advance,并返回true
 	bool matchNTK(TokenKind kind);    //匹配下个Token的类型,匹配则advance两次并返回true
-	void assertCTK(TokenKind kind);   //断言当前Token的类型,成功则advance,否则只报错
+//	void assertCTK(TokenKind kind);   //断言当前Token的类型,成功则advance,否则只报错
 	void skipCurStmt();               //判断若errCurStmt为true,则跳过当前语句,并将其置为false
 
 	//下面是编译用的递归调用链

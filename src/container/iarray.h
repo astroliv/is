@@ -57,7 +57,13 @@ public:
 	T *setout();                        //将当前数组数据迁出
 
 	T &operator[](isize idx);           //获取指定位置成员.需保证idx<usedSize,否则报错
+	T *operator~();                     //获取数组的数据指针
 };
+
+template<class T>
+T *Array<T>::operator~() {
+	return data;
+}
 
 template<class T>
 void Array<T>::setUsedSize(isize size) {

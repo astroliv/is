@@ -78,27 +78,27 @@ void Lexer::advance() {
 				break;
 			case '(':
 				ANT.kind = TokenKind::lpare;
-				++unLpare;
+//				++unLpare;
 				break;
 			case ')':
 				ANT.kind = TokenKind::rpare;
-				--unLpare;
+//				--unLpare;
 				break;
 			case '[':
 				ANT.kind = TokenKind::lbracket;
-				++unLbracket;
+//				++unLbracket;
 				break;
 			case ']':
 				ANT.kind = TokenKind::rbracket;
-				--unLbracket;
+//				--unLbracket;
 				break;
 			case '{':
 				ANT.kind = TokenKind::lbrace;
-				++unLbrace;
+//				++unLbrace;
 				break;
 			case '}':
 				ANT.kind = TokenKind::rbrace;
-				--unLbrace;
+//				--unLbrace;
 				break;
 			case ';':
 				ANT.kind = TokenKind::end;

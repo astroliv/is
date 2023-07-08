@@ -47,16 +47,23 @@ void reportMsg(RepId id, void *ptr, ...) {
 			sprintf(outbuffer, "core %s", tmpbuffer);
 			break;
 		case RepField::lexer: { //lexer的情况下需要输出文件名与行列号
-			if (ptr == nullptr) { unreachableBranch(); }
+			if (ptr == nullptr) {
+				unreachableBranch();
+				return;
+			}
 			auto *lexer = (Lexer *) ptr;
 			sprintf(outbuffer, "%s:%d:%d: %s", ~lexer->fileName,
 			        lexer->pos.line, lexer->pos.column, tmpbuffer);
 			break;
 		}
 		case RepField::compiler: {
-			if (ptr == nullptr) { unreachableBranch(); }
+			if (ptr == nullptr) {
+				unreachableBranch();
+				return;
+			}
 			auto *cu = (CompileUnit *) ptr;
-			cu->errCurFile = cu->errCurStmt = true;
+			if (idInfo.level == RepLevel::error ||
+			    idInfo.level == RepLevel::fatal) { cu->errCurFile = true; }
 			sprintf(outbuffer, "%s:%d:%d: %s", ~cu->lexer.fileName,
 			        cu->lexer.curToken.pos.line, cu->lexer.curToken.pos.column, tmpbuffer);
 			break;

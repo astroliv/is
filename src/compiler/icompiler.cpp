@@ -18,9 +18,6 @@
 #define TTK lexer.thiToken.kind
 #define TT (lexer.thiToken)
 
-//一个简化代码用的宏 (Cur Token Not Equal End & Rpare)
-#define CTKNEER CTK != TokenKind::end && CTK != TokenKind::rpare
-
 //下面是几个宏,用于处理匹配报错的
 
 //惰性匹配,匹配失败就摆烂返回false(其实就是CaseFalseReturnFalse)
@@ -28,12 +25,22 @@
 if((fn())!=Status::success){return Status::failure;}
 
 //强制匹配,匹配失败就开摆,报错返回一气呵成
-#define forceMatch(fn, id, ...)             \
+#define forceMatch(fn, id, ...) \
 switch (fn()) {\
     case Status::failure:reportMsg(id,this,##__VA_ARGS__);\
     case Status::error:return Status::error;\
     case Status::success:break;\
 }
+
+#define assertCTK(kind) \
+if(CTK!=(kind)){\
+    if(doGenerate){\
+        reportMsg(RepId::assertTokenKindFailure,this,\
+        tokenKindInfo(kind).strName,tokenKindInfo(CTK).strName);\
+        return Status::error;\
+    }else{return Status::failure;}\
+}advance();
+
 
 bool cmpFstrOfValue(const Value &a, const Value &b);//比较俩Value的fstr数据是否相等
 
@@ -68,33 +75,46 @@ inline bool CompileUnit::matchCTK(TokenKind kind) {
 	return true;
 }
 
-inline void CompileUnit::assertCTK(TokenKind kind) {
-	if (CTK != kind) {
-		reportMsg(RepId::assertTokenKindFailure, this,
-		          tokenKindInfo(kind).strName,
-		          tokenKindInfo(CTK).strName);
-		errCurFile = errCurStmt = true;
-		return;//由于当前token不是目前预期的,那么就认为其为下一个匹配所需的,不应被Pass掉
-	}
-	advance();//Pass curToken
+inline TokenKind CompileUnit::selectMatchCTK(TokenKind tk1, TokenKind tk2) {
+	if (CTK != tk1 && CTK != tk2) { return TokenKind::unk; }
+	return advance().kind; //Pass curToken
 }
 
+inline TokenKind CompileUnit::selectMatchCTK(TokenKind tk1, TokenKind tk2, TokenKind tk3) {
+	if (CTK != tk1 && CTK != tk2 && CTK != tk3) { return TokenKind::unk; }
+	return advance().kind; //Pass curToken
+}
+
+//inline void CompileUnit::assertCTK(TokenKind kind) {
+//	if (CTK != kind) {
+//		reportMsg(RepId::assertTokenKindFailure, this,
+//		          tokenKindInfo(kind).strName,
+//		          tokenKindInfo(CTK).strName);
+//		errCurFile = errCurStmt = true;
+//		return;//由于当前token不是所预期的,那么就认为其为下一个匹配所需的,不应被pass掉
+//	}
+//	advance();//Pass curToken
+//}
+
 inline void CompileUnit::skipCurStmt() {
-	if (!errCurStmt) { return; }
 	while (CTK != TokenKind::end && CTK != TokenKind::eof) { advance(); }
-	errCurStmt = false;
 }
 
 
 Status CompileUnit::stmts() {
 	while (CTK != TokenKind::eof) {
-		if (expr() != Status::success) { errCurFile = true; }
-		assertCTK(TokenKind::end);
-		skipCurStmt();
-		if (lexer.unLpare || lexer.unLbracket || lexer.unLbrace) {
-			reportMsg(RepId::unmatchedBracketsStmt, this);
-			lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
-		}//这只是一个提示,因为实际上assertTokenKindFailure也会对该情况进行报错
+		switch (expr()) {
+			case Status::error://报错时reportMsg会自动设置errCurFile为true
+			case Status::failure:
+				skipCurStmt();
+//				reportMsg(RepId::unknownStatement, this);
+			case Status::success:
+			assertCTK(TokenKind::end);
+		}
+//		if (lexer.unLpare || lexer.unLbracket || lexer.unLbrace) {
+//			reportMsg(RepId::unmatchedBracketsStmt, this);
+//			lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
+//		}//这只是一个提示,因为实际上assertTokenKindFailure也会对该情况进行报错
 	}
 	com->write(Instruction::end);
 	return Status::success;
@@ -104,13 +124,12 @@ Status CompileUnit::stmts() {
 Status CompileUnit::expr() {
 	inertMatch(term);
 	while (true) {
-		if (matchCTK(TokenKind::add)) {
+		TokenKind tk = selectMatchCTK(TokenKind::add, TokenKind::sub);
+		if (tk == TokenKind::unk) { break; }
+		if (doGenerate) {
 			forceMatch(term, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Instruction::add);
-		} else if (matchCTK(TokenKind::sub)) {
-			forceMatch(term, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Instruction::sub);
-		} else { break; }
+			com->write(relatedInstruction(tk));
+		} else inertMatch(term);
 	}
 	return Status::success;
 }
@@ -118,55 +137,78 @@ Status CompileUnit::expr() {
 Status CompileUnit::term() {
 	inertMatch(factor);
 	while (true) {
-		if (matchCTK(TokenKind::mul)) {
+		TokenKind tk = selectMatchCTK(TokenKind::mul, TokenKind::div, TokenKind::mod);
+		if (tk == TokenKind::unk) { break; }
+		if (doGenerate) {
 			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Instruction::mul);
-		} else if (matchCTK(TokenKind::div)) {
-			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Instruction::div);
-		} else if (matchCTK(TokenKind::mod)) {
-			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Instruction::mod);
-		} else { break; }
+			com->write(relatedInstruction(tk));
+		} else inertMatch(factor);
 	}
 	return Status::success;
 }
 
 Status CompileUnit::factor() {
-	if (matchCTK(TokenKind::add)) {
-		forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-	} else if (matchCTK(TokenKind::sub)) {
-		forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-		com->write(Instruction::neg);
-	} else {
+	TokenKind tk = selectMatchCTK(TokenKind::add, TokenKind::sub);
+	if (tk == TokenKind::unk) {
 		inertMatch(power);
+		return Status::success;
 	}
+	if (doGenerate) {
+		forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+		if (tk == TokenKind::sub) { com->write(Instruction::neg); }
+	} else inertMatch(factor);
 	return Status::success;
 }
 
 Status CompileUnit::power() {
 	inertMatch(atom);
 	while (true) {
-		if (matchCTK(TokenKind::pow)) {
+		if (!matchCTK(TokenKind::pow)) { break; }
+		if (doGenerate) {
 			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
 			com->write(Instruction::pow);
-		} else { break; }
+		} else inertMatch(factor);
 	}
 	return Status::success;
 }
 
 Status CompileUnit::atom() {
-	if (matchCTK(TokenKind::num)) {
-		com->write(Instruction::ldc, com->vm->constList.reg(PT.value), -1);
-	} else if (matchCTK(TokenKind::str)) {
-		com->write(Instruction::ldc, com->vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
-	} else if (matchCTK(TokenKind::lpare)) {
-		forceMatch(expr, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+	TokenKind tk = selectMatchCTK(TokenKind::num, TokenKind::str, TokenKind::lpare);
+	if (tk == TokenKind::unk) { return Status::failure; }
+	if (doGenerate) {
+		if (tk == TokenKind::num) {
+			com->write(Instruction::ldc, com->vm->constList.reg(PT.value), -1);
+		} else if (tk == TokenKind::str) {
+			com->write(Instruction::ldc, com->vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
+		} else if (tk == TokenKind::lpare) {
+			forceMatch(expr, RepId::expectedExpr, tokenKindInfo(CTK).strName);
+			assertCTK(TokenKind::rpare);
+		}
+	} else if (tk == TokenKind::lpare) {
+		inertMatch(expr);
 		assertCTK(TokenKind::rpare);
-	} else {
-		return Status::failure;
 	}
 	return Status::success;
+}
+
+inline Instruction CompileUnit::relatedInstruction(TokenKind tk) {
+	switch (tk) {
+		case TokenKind::add:
+			return Instruction::add;
+		case TokenKind::sub:
+			return Instruction::sub;
+		case TokenKind::mul:
+			return Instruction::mul;
+		case TokenKind::div:
+			return Instruction::div;
+		case TokenKind::pow:
+			return Instruction::pow;
+		case TokenKind::mod:
+			return Instruction::mod;
+		default:
+			unreachableBranch();
+	}
+	return Instruction::unk;
 }
 
 

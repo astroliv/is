@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cmath>
 #include <cstring>
 #include <windows.h>
 #include "container/iarray.h"
@@ -38,8 +37,19 @@ void testCompiler() {
 	auto vm = new VM();
 	Compiler com(R"(E:\projects\is\script\test.is)", vm);
 	CompileUnit &cu = com.cuList[0];
+	isize t = 0;
 
-	isize t = GetTickCount();
+//	t = GetTickCount();//test lookahead
+//	cu.doGenerate = false;
+//	cu.lexer.startLookahead();
+//	auto s = cu.stmts();
+//	cu.lexer.endLookahead();
+//	cu.doGenerate = true;
+//	t = GetTickCount() - t;
+//	printf("lookahead Time Consuming: %ums\n status:%d\n", t, (int) s);
+
+
+	t = GetTickCount();
 	cu.compile();
 	t = GetTickCount() - t;
 	printf("Compile Time Consuming: %ums\n", t);
@@ -57,9 +67,15 @@ void testCompiler() {
 	printf("Const List:\n");
 	for (isize i = 0; i < vm->constList.getUsedSize(); ++i) { printf("%-6d: %f\n", i, vm->constList[i].f64); }
 
+	if (cu.errCurFile) {
+		printf("\nError Compiling This File, No Result.\n");
+		return;
+	}
+
 	VMPRegist(vm, ip).ip8 = VMPRegist(vm, ib).ip8;
 	vm->execute();
-	printf("\nCalc Result:%f\n", vm->pop().f64);
+	printf("\nLast Calc Result:%f\n", vm->pop().f64);
+//	getchar();
 }
 
 void testCompound() {

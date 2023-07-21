@@ -1,13 +1,13 @@
 The Grammar Description File (Using ExtBNF - Invefa Form)
 
-expr          -> term ([<plus> | <minus>] term)*
-term          -> factor ([<mul> | <div> | <mod>] factor)*
-factor        -> [<plus> | <minus>] factor
-              -> power
-power         -> atom (<power> factor)*
-atom          -> <value> | <id> | var_assign
-              -> <LPAREN> expr <RPAREN>
-var_assign    -> [let] <id> <equal> expr
+module        -> stmts <eof>
+stmts         -> (<end>|expr <end>|def_var)*
+expr          -> term ([<add>|<sub>] term)*
+term          -> factor ([<mul>|<div>|<mod>] factor)*
+factor        -> [<add>|<sub>] factor | power
+power         -> atom (<pow> factor)*
+atom          -> <real> | <str> | <id> | <lpare> expr <rpare>
+def_var       -> [real] <id> (<equal> expr) <end>
 
 
 main.cpp:74:6: error: expected primary-expression before '/' token

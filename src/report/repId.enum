@@ -25,6 +25,7 @@ loadEnum(unknownStatement, compiler, error, "unknown statement that cannot be ma
 loadEnum(illegalExpr, compiler, error, "this is a non-grammatical expression.")
 loadEnum(expectedExpr, compiler, error, "expected expression before token:%s.")
 loadEnum(unmatchedBracketsStmt, compiler, error, "the brackets of this expression are not paired.")
+loadEnum(requireValue, compiler, error, "there should be literal or variable references or parenthesis expressions here.")
 
 //VM info
 loadEnum(stackResized, vm, info, "the stack has bee resize to %u.")

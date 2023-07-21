@@ -9,11 +9,11 @@ isize cstrLengthof(const char *str) {
 
 //string元
 
-inline isize stringMeta::getLength() const {
+isize stringMeta::getLength() const {
 	return length;
 }
 
-inline const char *stringMeta::getData() {
+const char *stringMeta::getData() {
 	return data;
 }
 

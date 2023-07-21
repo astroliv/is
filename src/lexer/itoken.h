@@ -34,6 +34,14 @@ inline TokenKindInfo tokenKindInfo(TokenKind tk) {
 	return TokenKindInfoList[(isize) tk];
 }
 
+inline const char *tokenKindStrName(TokenKind tk) {
+	return TokenKindInfoList[(isize) tk].strName;
+}
+
+inline const char *tokenKindSymbol(TokenKind tk) {
+	return TokenKindInfoList[(isize) tk].symbol;
+}
+
 TokenKind isKeyword(stringMeta extract);
 
 #endif //IS_ITOKEN_H

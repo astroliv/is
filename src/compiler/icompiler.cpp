@@ -20,29 +20,60 @@
 
 //下面是几个宏,用于处理匹配报错的
 
-//惰性匹配,匹配失败就摆烂返回false(其实就是CaseFalseReturnFalse)
+//惰性匹配,匹配失败就摆烂返回fn的返回值
 #define inertMatch(fn) \
-if((fn())!=Status::success){return Status::failure;}
+do{\
+    switch(fn()){\
+        case Status::failure:return Status::failure;\
+        case Status::error:return Status::error;\
+        case Status::success:break;\
+    }\
+}while(0);
 
-//强制匹配,匹配失败就开摆,报错返回一气呵成
+//强制匹配,匹配失败就报错返回Status::error
 #define forceMatch(fn, id, ...) \
-switch (fn()) {\
-    case Status::failure:reportMsg(id,this,##__VA_ARGS__);\
-    case Status::error:return Status::error;\
-    case Status::success:break;\
-}
+do{\
+    switch(fn()){\
+        case Status::failure:reportMsg(id,this,##__VA_ARGS__);\
+        case Status::error:return Status::error;\
+        case Status::success:break;\
+    }\
+}while(0);
 
+//#define aheadMatch(fn) \
+//do{\
+//    assert(doGenerate, "doGenerate is false here.");\
+//    lexer.startLookahead();\
+//    doGenerate = false;\
+//    result = fn();\
+//    doGenerate = true;\
+//    lexer.endLookahead();\
+//}while(0);
+
+//断言当前token类型,失败则报错返回Status::error
 #define assertCTK(kind) \
-if(CTK!=(kind)){\
-    if(doGenerate){\
-        reportMsg(RepId::assertTokenKindFailure,this,\
-        tokenKindInfo(kind).strName,tokenKindInfo(CTK).strName);\
-        return Status::error;\
-    }else{return Status::failure;}\
-}advance();
+do{\
+    if(CTK!=(kind)){\
+        if(doGenerate){\
+            reportMsg(RepId::assertTokenKindFailure,this,\
+            tokenKindInfo(kind).strName,tokenKindInfo(CTK).strName);\
+            return Status::error;\
+        }else{return Status::failure;}\
+    }advance();\
+}while(0);
 
-
-bool cmpFstrOfValue(const Value &a, const Value &b);//比较俩Value的fstr数据是否相等
+//compare methods
+namespace cmp {
+	//此函数功能为比较俩Value的fsp指向的refString数据是否相等,实际上也可以比较string数据
+	//由于Array<T>内查找与注册等方法的比较都是直接作==运算,那么对于Value类型,就要定义一个==的操作符重载,才能
+	//使用Array<Value>.为了普适性,我为Value定义的是直接进行内容比较.这样的话要是比较字符串,那就相当于直接比较
+	//指针,这肯定不是我们想要的结果.于是我为Array<T>设计了一个比较的方式,可以指定用于比较的函数,然后使用该函数
+	//比较,由此进行查找,注册等方法.于是在我们要比较字符串内容时,只需要指定这个函数,便可以解决其只会比较指针的问题
+	//此函数选用下划线的命名方式,因为有缩写不适合驼峰的那种(太丑了)
+	bool value_fsp(const Value &a, const Value &b) {
+		return *a.fsp == *b.fsp;
+	}
+}
 
 CompileUnit::CompileUnit(const char *file, Compiler *_com) {
 	init(file, _com);
@@ -51,10 +82,6 @@ CompileUnit::CompileUnit(const char *file, Compiler *_com) {
 inline void CompileUnit::init(const char *file, Compiler *_com) {
 	lexer.init(file);
 	com = _com;
-}
-
-void CompileUnit::compile() {
-	stmts();
 }
 
 inline Token CompileUnit::advance() {
@@ -85,110 +112,144 @@ inline TokenKind CompileUnit::selectMatchCTK(TokenKind tk1, TokenKind tk2, Token
 	return advance().kind; //Pass curToken
 }
 
-//inline void CompileUnit::assertCTK(TokenKind kind) {
-//	if (CTK != kind) {
-//		reportMsg(RepId::assertTokenKindFailure, this,
-//		          tokenKindInfo(kind).strName,
-//		          tokenKindInfo(CTK).strName);
-//		errCurFile = errCurStmt = true;
-//		return;//由于当前token不是所预期的,那么就认为其为下一个匹配所需的,不应被pass掉
-//	}
-//	advance();//Pass curToken
-//}
-
 inline void CompileUnit::skipCurStmt() {
 	while (CTK != TokenKind::end && CTK != TokenKind::eof) { advance(); }
 }
 
 
-Status CompileUnit::stmts() {
-	while (CTK != TokenKind::eof) {
-		switch (expr()) {
-			case Status::error://报错时reportMsg会自动设置errCurFile为true
-			case Status::failure:
-				skipCurStmt();
-//				reportMsg(RepId::unknownStatement, this);
-			case Status::success:
-			assertCTK(TokenKind::end);
-		}
-//		if (lexer.unLpare || lexer.unLbracket || lexer.unLbrace) {
-//			reportMsg(RepId::unmatchedBracketsStmt, this);
-//			lexer.unLpare = lexer.unLbracket = lexer.unLbrace = 0;
-//		}//这只是一个提示,因为实际上assertTokenKindFailure也会对该情况进行报错
-	}
-	com->write(Instruction::end);
-	return Status::success;
-
+void CompileUnit::compile() {
+	printf("%d\n", lookahead(&CompileUnit::stmts));
+//	if (!lookahead(&CompileUnit::stmts)) { return; }
+	stmts();
+	if (doGenerate) { com->write(Instruction::end); }
 }
 
+//stmts -> (<end>|expr <end>|def_var)*
+Status CompileUnit::stmts() {
+	while (CTK != TokenKind::eof) {
+		if (matchCTK(TokenKind::end)) { continue; }
+		switch (expr()) {//目前就只有一个expr,还没搞def_var
+			case Status::failure://匹配失败则表明该表达式为未知类型
+				reportMsg(RepId::unknownStatement, this);
+			case Status::error://报错时reportMsg会自动设置errCurFile为true
+				skipCurStmt();//跳过当前语句即可
+			case Status::success:
+				assertCTK(TokenKind::end);//成功则断言一下结束符
+		}
+	}
+	return Status::success;//匹配完则返回success
+}
+
+//expr -> term ([<add>|<sub>] term)*
 Status CompileUnit::expr() {
 	inertMatch(term);
 	while (true) {
-		TokenKind tk = selectMatchCTK(TokenKind::add, TokenKind::sub);
-		if (tk == TokenKind::unk) { break; }
+		auto tkind = selectMatchCTK(TokenKind::add,
+		                            TokenKind::sub);
+		//不为add和sub则表明不应再匹配后面的语句,跳出循环
+		if (tkind == TokenKind::unk) { break; }
+		//需要生成指令时,该匹配必须为term,不为则是语法错误,所以用forceMatch,匹配失败便报错返回
 		if (doGenerate) {
-			forceMatch(term, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(relatedInstruction(tk));
-		} else inertMatch(term);
+			forceMatch(term, RepId::expectedExpr, tokenKindStrName(CTK));
+			com->write(relatedInstruction(tkind));//写指令
+		} else { inertMatch(term); }//不生成时,直接测试匹配即可(不生成时不应该报错)
 	}
 	return Status::success;
 }
 
+//term -> factor ([<mul>|<div>|<mod>] factor)*
 Status CompileUnit::term() {
 	inertMatch(factor);
 	while (true) {
-		TokenKind tk = selectMatchCTK(TokenKind::mul, TokenKind::div, TokenKind::mod);
-		if (tk == TokenKind::unk) { break; }
+		auto tkind = selectMatchCTK(TokenKind::mul,
+		                            TokenKind::div,
+		                            TokenKind::mod);
+		//不为mul和div和mod则表明不应再匹配后面的语句,跳出循环
+		if (tkind == TokenKind::unk) { break; }
 		if (doGenerate) {
-			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(relatedInstruction(tk));
-		} else inertMatch(factor);
+			//需要生成指令时,该匹配必须为factor,不为则是语法错误,所以用forceMatch,匹配失败便报错返回
+			forceMatch(factor, RepId::expectedExpr, tokenKindStrName(CTK));
+			com->write(relatedInstruction(tkind));//写指令
+		} else { inertMatch(factor); }//不生成时,直接测试匹配即可
 	}
 	return Status::success;
 }
 
+//factor -> [<add>|<sub>] factor | power
 Status CompileUnit::factor() {
-	TokenKind tk = selectMatchCTK(TokenKind::add, TokenKind::sub);
-	if (tk == TokenKind::unk) {
+	auto tkind = selectMatchCTK(TokenKind::add,
+	                            TokenKind::sub);
+	if (tkind == TokenKind::unk) {
+		//不为add和sub则表明应为另一匹配式,即power
 		inertMatch(power);
-		return Status::success;
-	}
-	if (doGenerate) {
-		forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-		if (tk == TokenKind::sub) { com->write(Instruction::neg); }
-	} else inertMatch(factor);
+	} else if (doGenerate) {
+		//需要生成指令时,该匹配必须为factor,不为则是语法错误,所以用forceMatch,匹配失败便报错返回
+		forceMatch(factor, RepId::expectedExpr, tokenKindStrName(CTK));
+		//加号无需操作,减号则写指令neg
+		if (tkind == TokenKind::sub) { com->write(Instruction::neg); }
+	} else { inertMatch(factor); }//不生成时,直接测试匹配即可
 	return Status::success;
 }
 
+//power -> atom (<pow> factor)*
 Status CompileUnit::power() {
 	inertMatch(atom);
 	while (true) {
+		//不为pow则表明不应再匹配后面的语句,跳出循环
 		if (!matchCTK(TokenKind::pow)) { break; }
 		if (doGenerate) {
-			forceMatch(factor, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			com->write(Instruction::pow);
-		} else inertMatch(factor);
+			//需要生成指令时,该匹配必须为factor,不为则是语法错误,所以用forceMatch,匹配失败便报错返回
+			forceMatch(factor, RepId::expectedExpr, tokenKindStrName(CTK));
+			com->write(Instruction::pow);//写指令
+		} else { inertMatch(factor); }//不生成时,直接测试匹配即可
 	}
 	return Status::success;
 }
 
+//atom -> <real> | <str> | <id> | <lpare> expr <rpare>
 Status CompileUnit::atom() {
-	TokenKind tk = selectMatchCTK(TokenKind::num, TokenKind::str, TokenKind::lpare);
-	if (tk == TokenKind::unk) { return Status::failure; }
-	if (doGenerate) {
-		if (tk == TokenKind::num) {
-			com->write(Instruction::ldc, com->vm->constList.reg(PT.value), -1);
-		} else if (tk == TokenKind::str) {
-			com->write(Instruction::ldc, com->vm->constList.reg(PT.value, &cmpFstrOfValue), -1);
-		} else if (tk == TokenKind::lpare) {
-			forceMatch(expr, RepId::expectedExpr, tokenKindInfo(CTK).strName);
-			assertCTK(TokenKind::rpare);
+	auto tkind = selectMatchCTK(TokenKind::real,
+	                            TokenKind::str,
+	                            TokenKind::lpare);
+	if (doGenerate) {//生成指令
+		if (tkind == TokenKind::unk) {
+			//生成指令,且当前匹配未知,是语法错误
+			reportMsg(RepId::requireValue, this);
+			return Status::error;
+		} else if (tkind == TokenKind::real) {//匹配为实数字面量
+			com->write(Instruction::ldc,
+			           com->vm->constList.reg(PT.value));
+		} else if (tkind == TokenKind::str) {//匹配为字符串字面量
+			com->write(Instruction::ldc,
+			           com->vm->constList.reg(PT.value, cmp::value_fsp));
+		} else if (tkind == TokenKind::lpare) {//匹配为括号表达式
+			forceMatch(expr, RepId::expectedExpr, tokenKindStrName(CTK));
+			assertCTK(TokenKind::rpare);//表达式结束必须要有右括号匹配的~
 		}
-	} else if (tk == TokenKind::lpare) {
+	} else if (tkind == TokenKind::unk) {
+		//不生成指令,且当前匹配未知,因为是测试性匹配,返回failure
+		return Status::failure;
+	} else if (tkind == TokenKind::lpare) {
+		//不生成指令,匹配为括号表达式
 		inertMatch(expr);
-		assertCTK(TokenKind::rpare);
+		assertCTK(TokenKind::rpare);//assertCTK自带对doGenerate的判断的
 	}
 	return Status::success;
+}
+
+
+bool CompileUnit::lookahead(MatchFn fn) {
+	//有可能是fn的某子项调用,不过保险起见还是加上了这一句
+	assert(doGenerate, "doGenerate is false here.");
+	//下面是核心语句
+	doGenerate = false;
+	lexer.startLookahead();
+	Status status = (this->*fn)();//用当前cu实例调用fn
+	lexer.endLookahead();
+	doGenerate = true;
+	//测试性匹配不应报错,而error是报完错才会返回来的
+	assert(status != Status::error, "lookahead got Status::error.");
+	return status == Status::success;
 }
 
 inline Instruction CompileUnit::relatedInstruction(TokenKind tk) {
@@ -209,15 +270,6 @@ inline Instruction CompileUnit::relatedInstruction(TokenKind tk) {
 			unreachableBranch();
 	}
 	return Instruction::unk;
-}
-
-
-bool cmpFstrOfValue(const Value &a, const Value &b) {
-	//由于Array<T>内查找与注册等方法的比较都是直接作==运算,那么对于Value类型,就要定义一个==的操作符重载,才能
-	//使用Array<Value>.为了普适性,我为Value定义的是直接进行内容比较.这样的话要是比较字符串,那就相当于直接比较
-	//指针,这肯定不是我们想要的结果.于是我为Array<T>设计了一个比较的方式,可以指定用于比较的函数,然后使用该函数
-	//比较,由此进行查找,注册等方法.于是在我们要比较字符串内容时,只需要指定这个函数,便可以解决其只会比较指针的问题
-	return *a.fsp == *b.fsp;
 }
 
 Compiler::Compiler(VM *_vm) {
@@ -279,9 +331,15 @@ void Compiler::write(int64_t operand, int8_t len) {
 	}
 }
 
-void Compiler::write(Instruction type, int64_t operand, int8_t len) {
+void Compiler::write(Instruction type, int64_t operand) {
 	write(type);
-	write(operand, len);
+	write(operand, instructionInfo(type).fopLen[0]);
+}
+
+void Compiler::write(Instruction type, int64_t operand1, int64_t operand2) {
+	write(type);
+	write(operand1, instructionInfo(type).fopLen[0]);
+	write(operand2, instructionInfo(type).fopLen[1]);
 }
 
 inline void Compiler::writeVarg(uint64_t arg) {

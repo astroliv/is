@@ -9,9 +9,6 @@ public:
 	const char *code{nullptr};   //源码指针
 	char *nextCharPtr{nullptr};  //下一个字符的指针
 	char curChar{0};             //当前字符
-//	int16_t unLpare{0};          //未匹配的左小括号数量
-//	int16_t unLbracket{0};       //未匹配的左中括号数量
-//	int16_t unLbrace{0};         //未匹配的左大括号数量
 	Position pos;                //当前解析到的位置
 
 	//解析Token列表

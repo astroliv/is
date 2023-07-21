@@ -78,27 +78,21 @@ void Lexer::advance() {
 				break;
 			case '(':
 				ANT.kind = TokenKind::lpare;
-//				++unLpare;
 				break;
 			case ')':
 				ANT.kind = TokenKind::rpare;
-//				--unLpare;
 				break;
 			case '[':
 				ANT.kind = TokenKind::lbracket;
-//				++unLbracket;
 				break;
 			case ']':
 				ANT.kind = TokenKind::rbracket;
-//				--unLbracket;
 				break;
 			case '{':
 				ANT.kind = TokenKind::lbrace;
-//				++unLbrace;
 				break;
 			case '}':
 				ANT.kind = TokenKind::rbrace;
-//				--unLbrace;
 				break;
 			case ';':
 				ANT.kind = TokenKind::end;
@@ -167,17 +161,15 @@ void Lexer::skipComment(bool isBlock) {
 			if (curChar == '*' && matchNextChar('/')) {
 				getNextChar();
 				return;
-			}
-			if (*nextCharPtr == '\0') {//到结尾还是没有块注释结束符,便整个警告
+			} else if (*nextCharPtr == '\0') {//到结尾还是没有块注释结束符,便整个警告
 				getNextChar();
 				reportMsg(RepId::unterminatedBlockComment, this);
 			}
-		} else {
-			if (curChar == '\n') {
-				getNextChar();
-				return;
-			}
+		} else if (curChar == '\n') {
+			getNextChar();
+			return;
 		}
+
 		getNextChar();
 	}
 }
@@ -185,12 +177,12 @@ void Lexer::skipComment(bool isBlock) {
 void Lexer::parseNum() {
 	uint8_t dotNum = 0;
 	while (isdigit(curChar) || curChar == '.') {
-		if (curChar == '.') { dotNum++; }
+		if (curChar == '.') { ++dotNum; }
 		getNextChar();
 	}
 	if (dotNum > 1) { reportMsg(RepId::invalidNumberFormat, this); }
 	isize length = nextCharPtr - ~ANT.extract - 1;
-	ANT.kind = TokenKind::num;
+	ANT.kind = TokenKind::real;
 	ANT.extract.length = length;
 	ANT.value.f64 = strtod(~ANT.extract, nullptr);
 }
@@ -246,7 +238,7 @@ void Lexer::startLookahead() {
 	aheadTokens[3] = secToken;
 	aheadTokens[4] = thiToken;
 	aheadReadIdx = 0;
-}
+}//这tm有问题,只能一次使用再推进完aheadTokens才能再用下一次,否则会出bug~ 待我仔细想想怎么改qwq
 
 void Lexer::endLookahead() {
 	preToken = aheadTokens[0];
@@ -256,4 +248,6 @@ void Lexer::endLookahead() {
 	thiToken = aheadTokens[4];
 	aheadReadIdx = 5;
 	assert(aheadTokens.getUsedSize() != 5, "Can we code?");
+
+	//wdnmd,能搁这整出bug你可真厉害,哈哈哈awa
 }

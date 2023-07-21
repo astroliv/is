@@ -63,7 +63,10 @@ void reportMsg(RepId id, void *ptr, ...) {
 			}
 			auto *cu = (CompileUnit *) ptr;
 			if (idInfo.level == RepLevel::error ||
-			    idInfo.level == RepLevel::fatal) { cu->errCurFile = true; }
+			    idInfo.level == RepLevel::fatal) {
+				assert(cu->doGenerate, "cu->doGenerate = false.");//不生成时不应该报错!
+				cu->errCurFile = true;
+			}
 			sprintf(outbuffer, "%s:%d:%d: %s", ~cu->lexer.fileName,
 			        cu->lexer.curToken.pos.line, cu->lexer.curToken.pos.column, tmpbuffer);
 			break;

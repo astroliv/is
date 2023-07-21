@@ -9,7 +9,7 @@ TokenKindInfo TokenKindInfoList[] = {
 };
 
 TokenKind isKeyword(stringMeta extract) {
-	for (isize i = 0; i < (isize) TokenKind::unk; ++i) {
+	for (auto i = (isize) TokenKind::_ + 1; i < (isize) TokenKind::__; ++i) {
 		if (!strncmp(tokenKindInfo((TokenKind) i).symbol, extract.getData(), extract.getLength())) {
 			return (TokenKind) i;
 		}
@@ -19,7 +19,7 @@ TokenKind isKeyword(stringMeta extract) {
 
 string Token::dump() const {
 	char buffer[512] = {0};
-	if (kind == TokenKind::num) {
+	if (kind == TokenKind::real) {
 		sprintf(buffer, "kind:%-10s extract:%-8s value:%-18f pos:[%u,%u]",
 		        tokenKindInfo(kind).strName, ~string(extract),
 		        value.f64, pos.line, pos.column);

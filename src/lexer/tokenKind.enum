@@ -2,6 +2,18 @@
 //n         为枚举名
 //symbol    该TokenKind对应的文本
 
+loadEnum(unk,"")
+
+//标识符
+loadEnum(id,"")
+
+//字面量
+loadEnum(real,"")
+loadEnum(integer,"")
+loadEnum(str,"")
+
+loadEnum(_,"")//关键字分界符起始
+
 loadEnum(let,"let")
 loadEnum(byte_,"byte")
 loadEnum(short_,"short")
@@ -9,14 +21,10 @@ loadEnum(int_,"int")
 loadEnum(long_,"long")
 loadEnum(string_,"string")
 
-loadEnum(unk,"")
+loadEnum(__,"")//关键字分界符结束
 
-loadEnum(id,"")
-loadEnum(num,"")
-loadEnum(str,"")
-
+//算符
 loadEnum(assign,"=")
-
 loadEnum(add,"+")
 loadEnum(sub,"-")
 loadEnum(mul,"*")
